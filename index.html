@@ -1,0 +1,2820 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f4f3ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="Mi Plata">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<title>Mi Plata</title>
+<style>
+:root{
+  --bg:#f4f3ee; --surface:#ffffff; --surface2:#faf9f5; --sunken:#eeece4;
+  --text:#1b1a17; --muted:#6f6d64; --faint:#9a978c; --line:#e4e1d7;
+  --accent:#0d7a6f; --accent-ink:#065048; --accent-soft:#dcefea;
+  --in:#0d7a6f; --in-soft:#dcefea;
+  --out:#c25239; --out-soft:#fbe5df;
+  --save:#8a6bc4; --save-soft:#ece4f8;
+  --warn:#a8711a; --warn-soft:#fbeed6;
+  --danger:#b23b30;
+  --r:16px; --r-sm:11px; --r-lg:22px;
+  --shadow:0 1px 2px rgba(24,22,17,.05), 0 6px 18px -8px rgba(24,22,17,.16);
+  --on-accent:#ffffff;
+  --cat:#1b1b24; --cat-paw:#2f2f3c; --cat-ear:#e8aab4; --cat-nose:#e2899b;
+  --cat-eye:#f4b73f; --cat-line:#cfccc3; --cat-halo:#e9e5d9; --cat-rim:transparent;
+  --accent-lift:#13a191; --fab-glow:13,122,111;
+  --nav-h:66px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --surface:#1d2026; --surface2:#22252c; --sunken:#282c34;
+    --text:#eceae4; --muted:#a2a49e; --faint:#75776f; --line:#2f333b;
+    --accent:#4ec5b2; --accent-ink:#a9e5db; --accent-soft:#17342f;
+    --in:#4ec5b2; --in-soft:#17342f;
+    --out:#f08a6c; --out-soft:#3a231c;
+    --save:#b79df0; --save-soft:#2a2338;
+    --warn:#e0aa54; --warn-soft:#372a15;
+    --danger:#f0796a;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 22px -10px rgba(0,0,0,.6);
+    --on-accent:#06231f;
+    --cat:#0e0e15; --cat-paw:#20202b; --cat-ear:#c98d98; --cat-nose:#c47b8c;
+    --cat-eye:#f4b73f; --cat-line:#7e7b74; --cat-halo:#272b34; --cat-rim:rgba(255,255,255,.55);
+    --accent-lift:#74dbc9; --fab-glow:78,197,178;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161a; --surface:#1d2026; --surface2:#22252c; --sunken:#282c34;
+  --text:#eceae4; --muted:#a2a49e; --faint:#75776f; --line:#2f333b;
+  --accent:#4ec5b2; --accent-ink:#a9e5db; --accent-soft:#17342f;
+  --in:#4ec5b2; --in-soft:#17342f;
+  --out:#f08a6c; --out-soft:#3a231c;
+  --save:#b79df0; --save-soft:#2a2338;
+  --warn:#e0aa54; --warn-soft:#372a15;
+  --danger:#f0796a;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 22px -10px rgba(0,0,0,.6);
+  --on-accent:#06231f;
+  --cat:#0e0e15; --cat-paw:#20202b; --cat-ear:#c98d98; --cat-nose:#c47b8c;
+  --cat-eye:#f4b73f; --cat-line:#7e7b74; --cat-halo:#272b34; --cat-rim:rgba(255,255,255,.55);
+  --accent-lift:#74dbc9; --fab-glow:78,197,178;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text);
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+}
+button,input,select,textarea{font:inherit; color:inherit}
+button{cursor:pointer; border:none; background:none; padding:0}
+h1,h2,h3,p{margin:0}
+.tnum{font-variant-numeric:tabular-nums; font-feature-settings:"tnum"}
+
+/* ---------- shell ---------- */
+#app{max-width:520px; margin:0 auto; min-height:100vh; position:relative}
+.screen{display:none; padding:0 16px calc(var(--nav-h) + 96px); animation:fade .22s ease}
+.screen.on{display:block}
+@keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.top{padding:calc(env(safe-area-inset-top) + 18px) 0 12px; display:flex; align-items:flex-end; justify-content:space-between; gap:12px}
+.top h1{font-size:25px; line-height:1.15; letter-spacing:-.02em; font-weight:680}
+/* o saludo leva o nombre, asi que se ajusta al ancho en vez de partirse en dos */
+#saludo{font-size:clamp(18px, 5.4vw, 25px); text-wrap:balance}
+.top .sub{font-size:12.5px; color:var(--muted); margin-top:3px}
+.iconbtn{width:38px;height:38px;border-radius:50%;background:var(--surface);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:17px;flex:none;box-shadow:var(--shadow)}
+
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:16px; box-shadow:var(--shadow); margin-bottom:12px}
+.card.flat{box-shadow:none; background:var(--surface2)}
+.card h3{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:650; margin-bottom:10px}
+.row{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.muted{color:var(--muted)} .faint{color:var(--faint)}
+.s12{font-size:12.5px} .s13{font-size:13.5px} .s14{font-size:14px}
+.mt8{margin-top:8px} .mt12{margin-top:12px} .mt16{margin-top:16px} .mt20{margin-top:20px}
+.center{text-align:center}
+
+/* ---------- hero ---------- */
+.hero{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg); padding:20px 18px; box-shadow:var(--shadow); margin-bottom:12px}
+.hero .lbl{font-size:12.5px; color:var(--muted); font-weight:560}
+.hero .big{font-size:38px; font-weight:700; letter-spacing:-.03em; line-height:1.08; margin:5px 0 2px}
+.hero .big.neg{color:var(--out)}
+.hero .note{font-size:13px; color:var(--muted)}
+.split{display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:var(--line); border-radius:var(--r-sm); overflow:hidden; margin-top:16px}
+.split>div{background:var(--surface); padding:11px 8px; text-align:center}
+.split .k{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--faint); font-weight:640}
+.split .v{font-size:15px; font-weight:670; margin-top:3px; letter-spacing:-.01em}
+.v.in{color:var(--in)} .v.out{color:var(--out)} .v.save{color:var(--save)}
+
+.bar{height:9px; border-radius:99px; background:var(--sunken); overflow:hidden; display:flex}
+.bar i{display:block; height:100%}
+.bar i.a{background:var(--out)} .bar i.b{background:var(--save)} .bar i.c{background:var(--accent)}
+
+/* ---------- daily pace ---------- */
+.pace{display:flex; align-items:baseline; gap:8px; margin-top:4px}
+.pace b{font-size:26px; font-weight:700; letter-spacing:-.02em}
+
+/* ---------- lists ---------- */
+.item{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:none}
+.ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:none;background:var(--sunken)}
+.ic.in{background:var(--in-soft)} .ic.out{background:var(--out-soft)} .ic.save{background:var(--save-soft)}
+.item .nm{font-weight:570; font-size:14.5px}
+.item .dt{font-size:12px; color:var(--faint); margin-top:1px}
+.item .amt{margin-left:auto; font-weight:650; font-size:15px; white-space:nowrap; letter-spacing:-.01em}
+.amt.in{color:var(--in)} .amt.out{color:var(--out)} .amt.save{color:var(--save)}
+
+.catrow{display:flex; align-items:center; gap:10px; margin-bottom:11px}
+.catrow .e{width:26px; text-align:center; font-size:15px; flex:none}
+.catrow .g{flex:1; min-width:0}
+.catrow .t{display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:4px; gap:8px}
+.catrow .t span:first-child{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.catrow .t b{font-weight:640; white-space:nowrap}
+.mini{height:6px; border-radius:99px; background:var(--sunken); overflow:hidden}
+.mini i{display:block;height:100%; background:var(--out); border-radius:99px}
+.mini i.ess{background:var(--accent)}
+
+/* ---------- buttons ---------- */
+.btn{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px 16px;
+  border-radius:13px; background:var(--accent); color:var(--on-accent); font-weight:640; font-size:15px; text-align:center}
+.btn.ghost{background:var(--surface); border:1px solid var(--line); color:var(--text)}
+.btn.soft{background:var(--accent-soft); color:var(--accent-ink)}
+.btn.sm{padding:10px 14px; font-size:14px; border-radius:11px; width:auto}
+.btn:active{transform:scale(.985)}
+.btnrow{display:flex; gap:9px}
+.btnrow>*{flex:1}
+
+.chip{padding:7px 13px; border-radius:99px; background:var(--surface); border:1px solid var(--line);
+  font-size:13px; font-weight:560; white-space:nowrap}
+.chip.on{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
+.chips{display:flex; gap:7px; overflow-x:auto; padding:2px 0 6px; scrollbar-width:none; -ms-overflow-style:none}
+.chips::-webkit-scrollbar{display:none}
+
+/* ---------- fab + nav ---------- */
+.fab{position:fixed; left:50%; transform:translateX(-50%);
+  bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);
+  width:60px; height:60px; border-radius:50%; z-index:40;
+  background:linear-gradient(152deg, var(--accent-lift) 0%, var(--accent) 62%);
+  color:var(--on-accent); display:grid; place-items:center;
+  box-shadow:
+    0 1px 2px rgba(var(--fab-glow),.30),
+    0 6px 14px -3px rgba(var(--fab-glow),.42),
+    0 14px 30px -10px rgba(var(--fab-glow),.55),
+    inset 0 1px 0 rgba(255,255,255,.26),
+    inset 0 0 0 1px rgba(255,255,255,.10);
+  transition:transform .15s cubic-bezier(.3,.8,.3,1), box-shadow .15s ease}
+.fab svg{width:23px; height:23px; display:block}
+.fab:active{transform:translateX(-50%) scale(.92);
+  box-shadow:0 1px 2px rgba(var(--fab-glow),.35), 0 4px 10px -3px rgba(var(--fab-glow),.45),
+             inset 0 1px 0 rgba(255,255,255,.18)}
+nav{position:fixed; bottom:0; left:0; right:0; height:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom); background:var(--surface); border-top:1px solid var(--line);
+  display:flex; z-index:30}
+nav .in{max-width:520px; margin:0 auto; width:100%; display:grid; grid-template-columns:repeat(5,1fr)}
+nav button{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  height:var(--nav-h); color:var(--faint); font-size:10px; font-weight:580}
+nav button .e{font-size:19px; line-height:1; filter:grayscale(1); opacity:.6}
+nav button.on{color:var(--accent)} nav button.on .e{filter:none; opacity:1}
+
+/* ---------- sheet ---------- */
+.scrim{position:fixed; inset:0; background:rgba(15,14,11,.5); z-index:50; opacity:0; pointer-events:none; transition:opacity .22s}
+.scrim.on{opacity:1; pointer-events:auto}
+.sheet{position:fixed; left:0; right:0; bottom:0; z-index:60; background:var(--bg);
+  border-radius:24px 24px 0 0; max-width:520px; margin:0 auto; transform:translateY(102%);
+  transition:transform .28s cubic-bezier(.32,.72,0,1); max-height:94vh; display:flex; flex-direction:column;
+  padding-bottom:env(safe-area-inset-bottom)}
+.sheet.on{transform:none}
+.grab{width:38px;height:4px;border-radius:99px;background:var(--line); margin:9px auto 0; flex:none}
+.sheet .body{overflow-y:auto; padding:14px 16px 18px; -webkit-overflow-scrolling:touch}
+.sheet h2{font-size:18px; font-weight:670; letter-spacing:-.01em}
+
+/* ---------- keypad ---------- */
+.seg{display:flex; gap:4px; background:var(--sunken); padding:4px; border-radius:12px; margin-bottom:14px}
+.seg button{flex:1; padding:9px 4px; border-radius:9px; font-size:13.5px; font-weight:620; color:var(--muted)}
+.seg button.on{background:var(--surface); box-shadow:var(--shadow)}
+.seg button.on[data-t="in"]{color:var(--in)}
+.seg button.on[data-t="out"]{color:var(--out)}
+.seg button.on[data-t="save"]{color:var(--save)}
+.amount{text-align:center; padding:6px 0 12px}
+.amount .v{font-size:40px; font-weight:700; letter-spacing:-.03em; line-height:1.1}
+.amount .v.zero{color:var(--faint)}
+.pad{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:6px}
+.pad button{height:52px; border-radius:12px; background:var(--surface); border:1px solid var(--line);
+  font-size:21px; font-weight:560; display:grid; place-items:center; box-shadow:var(--shadow)}
+.pad button.sec{font-size:15px; font-weight:620; color:var(--muted); background:var(--surface2)}
+.pad button:active{background:var(--sunken)}
+.catgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-top:4px}
+.catgrid button{padding:9px 3px; border-radius:12px; background:var(--surface); border:1px solid var(--line);
+  display:flex; flex-direction:column; align-items:center; gap:4px; font-size:9.5px; line-height:1.2; color:var(--muted);
+  text-align:center; font-weight:560; min-height:60px; justify-content:center}
+.catgrid button .e{font-size:19px; line-height:1}
+.catgrid button.on{border-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink)}
+
+label.f{display:block; font-size:12px; color:var(--muted); font-weight:600; margin:12px 0 5px}
+input.f, select.f, textarea.f{width:100%; padding:12px 13px; border-radius:11px; border:1px solid var(--line);
+  background:var(--surface); font-size:15.5px; outline:none}
+input.f:focus, select.f:focus, textarea.f:focus{border-color:var(--accent)}
+textarea.f{min-height:88px; resize:vertical; font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+/* ---------- misc ---------- */
+.banner{display:flex; gap:11px; align-items:flex-start; padding:13px 14px; border-radius:var(--r); margin-bottom:12px; font-size:13.5px; line-height:1.45}
+.banner.warn{background:var(--warn-soft); color:var(--warn)}
+.banner.bad{background:var(--out-soft); color:var(--out)}
+.banner.ok{background:var(--accent-soft); color:var(--accent-ink)}
+.banner b{font-weight:680}
+.banner .e{font-size:17px; line-height:1.2; flex:none}
+.banner button{text-decoration:underline; font-weight:650; color:inherit; font-size:13px; margin-top:5px; display:block}
+
+.step{display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:none}
+.step .n{width:25px;height:25px;border-radius:50%;background:var(--sunken); color:var(--muted);
+  display:grid;place-items:center;font-size:12px;font-weight:700;flex:none; margin-top:1px}
+.step.done .n{background:var(--accent); color:var(--on-accent)}
+.step.now .n{background:var(--warn); color:#fff}
+.step .ti{font-weight:620; font-size:14.5px}
+.step.done .ti{color:var(--muted)}
+.step .de{font-size:12.5px; color:var(--muted); margin-top:2px; line-height:1.45}
+.step .pill{display:inline-block; margin-top:6px; padding:3px 9px; border-radius:99px; background:var(--warn-soft);
+  color:var(--warn); font-size:11.5px; font-weight:680}
+
+.goal{padding:13px 0; border-bottom:1px solid var(--line)}
+.goal:last-child{border-bottom:none}
+.goal .hd{display:flex; align-items:center; gap:9px; margin-bottom:7px}
+.goal .hd .e{font-size:18px}
+.goal .hd .nm{font-weight:620; font-size:14.5px; flex:1}
+.goal .hd .pc{font-size:12.5px; color:var(--muted); font-weight:640}
+.goal .ft{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:6px; gap:8px}
+
+.opt{border:1px solid var(--line); border-radius:var(--r); padding:14px; margin-bottom:10px; background:var(--surface)}
+.opt .hd{display:flex; align-items:center; gap:10px; margin-bottom:7px}
+.opt .hd .e{font-size:20px}
+.opt .hd .nm{font-weight:660; font-size:15px}
+.opt .tag{margin-left:auto; font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:99px; text-transform:uppercase; letter-spacing:.04em}
+.opt .tag.low{background:var(--accent-soft); color:var(--accent-ink)}
+.opt .tag.mid{background:var(--warn-soft); color:var(--warn)}
+.opt .tag.high{background:var(--out-soft); color:var(--out)}
+.opt p{font-size:13px; color:var(--muted); line-height:1.5}
+.opt dl{display:grid; grid-template-columns:auto 1fr; gap:4px 12px; margin:9px 0 0; font-size:12.5px}
+.opt dt{color:var(--faint); font-weight:600} .opt dd{margin:0; font-weight:560}
+
+.kv{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px; gap:12px}
+.kv:last-child{border-bottom:none}
+.kv b{font-weight:650; white-space:nowrap}
+.kv.big b{font-size:17px; color:var(--accent)}
+
+.toast{position:fixed; left:50%; transform:translateX(-50%) translateY(20px); bottom:calc(var(--nav-h) + 84px);
+  background:var(--text); color:var(--bg); padding:11px 18px; border-radius:99px; font-size:13.5px; font-weight:600;
+  z-index:90; opacity:0; pointer-events:none; transition:.25s; max-width:88%; text-align:center}
+.toast.on{opacity:1; transform:translateX(-50%)}
+
+.empty{text-align:center; padding:36px 20px; color:var(--muted)}
+.empty .e{font-size:38px; display:block; margin-bottom:10px; opacity:.75}
+.empty p{font-size:13.5px; line-height:1.55; margin-top:5px}
+
+.trend{display:flex; align-items:flex-end; gap:5px; height:60px; margin-top:10px}
+.trend .col{flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:2px; height:100%}
+.trend .col .b1{background:var(--out-soft); border-radius:3px 3px 0 0; min-height:2px}
+.trend .col .b2{background:var(--in-soft); border-radius:3px 3px 0 0; min-height:2px}
+.trendlbl{display:flex; gap:5px; margin-top:5px}
+.trendlbl div{flex:1; text-align:center; font-size:9.5px; color:var(--faint); text-transform:uppercase; font-weight:620}
+
+.disc{font-size:11.5px; color:var(--faint); line-height:1.55; padding:14px 2px 0}
+details.acc{border-top:1px solid var(--line); padding:12px 0}
+details.acc summary{font-weight:600; font-size:14px; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center}
+details.acc summary::-webkit-details-marker{display:none}
+details.acc summary::after{content:'+'; color:var(--muted); font-size:18px; font-weight:400}
+details.acc[open] summary::after{content:'–'}
+details.acc .c{font-size:13px; color:var(--muted); line-height:1.6; padding-top:9px}
+details.acc .c p+p{margin-top:8px}
+details.acc .c b{color:var(--text)}
+
+.swipe{display:flex; gap:8px; margin-top:10px}
+.swipe button{flex:1; padding:9px; border-radius:10px; background:var(--surface2); border:1px solid var(--line); font-size:13px; font-weight:600}
+.swipe button.del{color:var(--danger)}
+/* ================= gatinhos pretos ================= */
+.cat{display:block; width:100%; height:auto}
+.catwrap{display:flex; justify-content:center; margin:0 auto}
+.cat-xs{width:22px;height:22px;flex:none}
+.cat-sm{width:44px;height:44px;flex:none}
+.cat-md{width:96px}
+.cat-lg{width:132px}
+/* gato preto sobre fundo escuro precisa de contorno de luz */
+:root[data-theme="dark"] .cat{filter:drop-shadow(0 0 1.6px var(--cat-rim)) drop-shadow(0 0 7px rgba(255,255,255,.10))}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .cat{filter:drop-shadow(0 0 1.6px var(--cat-rim)) drop-shadow(0 0 7px rgba(255,255,255,.10))}
+}
+:root[data-theme="light"] .cat{filter:none}
+
+.catstage{position:relative; display:grid; place-items:center; padding:6px 0 2px}
+.catstage::before{content:''; position:absolute; width:118px; height:118px; border-radius:50%;
+  background:var(--cat-halo); z-index:0}
+.catstage .cat{position:relative; z-index:1}
+
+/* gato espiando por cima de um card */
+.peekwrap{position:relative; margin-top:26px}
+.peekwrap .peek{position:absolute; top:-25px; right:16px; width:74px; z-index:2; pointer-events:none}
+.peekwrap>.card,.peekwrap>.hero{margin-top:0}
+
+.pawline{display:flex; align-items:center; gap:7px; color:var(--faint)}
+.pawline svg{width:14px;height:14px;flex:none}
+
+/* ================= aprender ================= */
+.searchbar{position:relative; margin-bottom:12px}
+.searchbar input{width:100%; padding:14px 44px 14px 44px; border-radius:14px; border:1px solid var(--line);
+  background:var(--surface); font-size:16px; outline:none; box-shadow:var(--shadow)}
+.searchbar input:focus{border-color:var(--accent)}
+.searchbar .mag{position:absolute; left:14px; top:50%; transform:translateY(-50%); width:19px; height:19px; color:var(--faint)}
+.searchbar .clr{position:absolute; right:8px; top:50%; transform:translateY(-50%); width:30px; height:30px;
+  border-radius:50%; display:none; place-items:center; color:var(--muted); background:var(--sunken)}
+.searchbar .clr svg{width:14px;height:14px}
+.searchbar.has .clr{display:grid}
+
+.art{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); margin-bottom:9px;
+  box-shadow:var(--shadow); overflow:hidden}
+.art>summary{list-style:none; cursor:pointer; padding:14px 15px; display:flex; gap:11px; align-items:flex-start}
+.art>summary::-webkit-details-marker{display:none}
+.art .qi{width:26px;height:26px;flex:none;border-radius:8px;background:var(--accent-soft);
+  display:grid;place-items:center;color:var(--accent-ink)}
+.art .qi svg{width:15px;height:15px}
+.art .qt{flex:1; min-width:0}
+.art .qt b{display:block; font-weight:640; font-size:14.5px; line-height:1.35}
+.art .qt span{display:block; font-size:12.5px; color:var(--muted); margin-top:3px; line-height:1.45}
+.art .chev{color:var(--faint); font-size:19px; line-height:1; margin-top:2px; flex:none; transition:transform .2s}
+.art[open] .chev{transform:rotate(45deg)}
+.art .ab{padding:2px 15px 16px; font-size:13.5px; line-height:1.65; color:var(--muted)}
+.art .ab p{margin:0 0 9px}
+.art .ab p:last-child{margin-bottom:0}
+.art .ab b{color:var(--text); font-weight:640}
+.art .ab ul{margin:0 0 9px; padding-left:18px}
+.art .ab li{margin-bottom:5px}
+.art .ab .tip{background:var(--accent-soft); color:var(--accent-ink); border-radius:11px; padding:11px 12px; margin:10px 0 0}
+.art .ab .tip b{color:var(--accent-ink)}
+.art .ab .alerta{background:var(--out-soft); color:var(--out); border-radius:11px; padding:11px 12px; margin:10px 0 0}
+.art .ab .alerta b{color:var(--out)}
+.art .ab .num{font-variant-numeric:tabular-nums; font-weight:640; color:var(--text)}
+.art .goto{display:inline-flex; align-items:center; gap:6px; margin-top:11px; font-size:13px;
+  font-weight:640; color:var(--accent); text-decoration:underline; text-underline-offset:3px}
+
+.catcount{font-size:12px; color:var(--faint); margin:2px 0 10px; font-weight:560}
+.faqhd{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  font-weight:650; margin:20px 0 10px; display:flex; align-items:center; gap:7px}
+.faqhd svg{width:14px;height:14px;color:var(--faint)}
+
+/* ================= navegacao com icones ================= */
+nav button .e{display:none}
+nav button svg{width:21px;height:21px}
+nav button.on svg{color:var(--accent)}
+.topbtns{display:flex; gap:8px; align-items:center; flex:none}
+.iconbtn svg{width:18px;height:18px;color:var(--muted)}
+.iconbtn.on svg{color:var(--accent)}
+
+/* ================= pagos con fecha ================= */
+.pend{display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--line)}
+.pend:last-child{border-bottom:none}
+.pend .pd{flex:1; min-width:0}
+.pend .nm{font-weight:570; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.pend .dt{font-size:12px; margin-top:2px; font-weight:620; line-height:1.35}
+.pend .pa{font-weight:650; font-size:15px; white-space:nowrap; letter-spacing:-.01em}
+.pend.ok .nm,.pend.ok .pa{color:var(--faint); text-decoration:line-through}
+.pend .pb{padding:8px 14px; border-radius:99px; background:var(--accent); color:var(--on-accent);
+  font-size:12.5px; font-weight:650; flex:none}
+.pend .pb.done{background:transparent; color:var(--accent); font-size:17px; padding:6px 8px}
+.pend .pb:active{transform:scale(.96)}
+</style>
+</head>
+<body>
+<svg id="sprite" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+<defs>
+
+<!-- ===== gato sentado, de frente (mascote principal) ===== -->
+<symbol id="cat-sit" viewBox="0 0 120 120">
+  <path d="M88 102 C110 102 116 82 104 70 C98 64 89 66 88 73" fill="none" stroke="var(--cat)" stroke-width="9" stroke-linecap="round"/>
+  <path d="M60 50 C40 50 30 72 30 92 C30 103 41 108 60 108 C79 108 90 103 90 92 C90 72 80 50 60 50 Z" fill="var(--cat)"/>
+  <path d="M33 33 L28 7 L52 21 Z" fill="var(--cat)"/>
+  <path d="M87 33 L92 7 L68 21 Z" fill="var(--cat)"/>
+  <circle cx="60" cy="45" r="26" fill="var(--cat)"/>
+  <path d="M36 29 L33 15 L46 23 Z" fill="var(--cat-ear)"/>
+  <path d="M84 29 L87 15 L74 23 Z" fill="var(--cat-ear)"/>
+  <ellipse cx="50" cy="43" rx="6" ry="7.6" fill="var(--cat-eye)"/>
+  <ellipse cx="70" cy="43" rx="6" ry="7.6" fill="var(--cat-eye)"/>
+  <ellipse cx="50" cy="43" rx="2.1" ry="6.2" fill="#141118"/>
+  <ellipse cx="70" cy="43" rx="2.1" ry="6.2" fill="#141118"/>
+  <circle cx="52.2" cy="39.6" r="1.5" fill="#fff" opacity=".9"/>
+  <circle cx="72.2" cy="39.6" r="1.5" fill="#fff" opacity=".9"/>
+  <path d="M56.6 53 L63.4 53 L60 57.2 Z" fill="var(--cat-nose)"/>
+  <path d="M60 57.2 C60 60.4 57 61.4 55 59.2 M60 57.2 C60 60.4 63 61.4 65 59.2" fill="none" stroke="var(--cat-line)" stroke-width="1.5" stroke-linecap="round"/>
+  <g stroke="var(--cat-line)" stroke-width="1.3" stroke-linecap="round" opacity=".7">
+    <path d="M45 51 L27 47"/><path d="M45 54.5 L28 56"/>
+    <path d="M75 51 L93 47"/><path d="M75 54.5 L92 56"/>
+  </g>
+  <ellipse cx="47" cy="104" rx="9.5" ry="5" fill="var(--cat-paw)"/>
+  <ellipse cx="73" cy="104" rx="9.5" ry="5" fill="var(--cat-paw)"/>
+</symbol>
+
+<!-- ===== gato enroscado dormindo (estados vazios) ===== -->
+<symbol id="cat-sleep" viewBox="0 0 120 120">
+  <path d="M98 72 C114 78 110 98 90 100 C72 102 56 100 42 96" fill="none" stroke="var(--cat)" stroke-width="11" stroke-linecap="round"/>
+  <ellipse cx="62" cy="74" rx="43" ry="25" fill="var(--cat)"/>
+  <path d="M19 58 L14 42 L32 51 Z" fill="var(--cat)"/>
+  <path d="M41 52 L46 37 L29 44 Z" fill="var(--cat)"/>
+  <circle cx="31" cy="67" r="18" fill="var(--cat)"/>
+  <path d="M22 55 L19 46 L29 51 Z" fill="var(--cat-ear)"/>
+  <path d="M39 50 L42 42 L32 46 Z" fill="var(--cat-ear)"/>
+  <g fill="none" stroke="var(--cat-line)" stroke-width="1.9" stroke-linecap="round">
+    <path d="M20 65 C22.6 68.4 25.8 68.4 28.4 65"/>
+    <path d="M35 65 C37.6 68.4 40.8 68.4 43.4 65"/>
+  </g>
+  <path d="M28.4 72.4 L34.6 72.4 L31.5 76.2 Z" fill="var(--cat-nose)"/>
+  <g stroke="var(--cat-line)" stroke-width="1.2" stroke-linecap="round" opacity=".65">
+    <path d="M17 71 L4 68"/><path d="M17 74 L5 77"/>
+  </g>
+  <ellipse cx="52" cy="93" rx="10" ry="5" fill="var(--cat-paw)"/>
+  <g fill="none" stroke="var(--cat-eye)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
+    <path d="M62 34 L72 34 L62 45 L72 45"/>
+    <path d="M78 18 L86 18 L78 27 L86 27"/>
+    <path d="M92 6 L98 6 L92 13 L98 13"/>
+  </g>
+</symbol>
+
+<!-- ===== gato espiando por cima da borda ===== -->
+<symbol id="cat-peek" viewBox="0 0 140 56">
+  <path d="M46 22 L41 2 L61 14 Z" fill="var(--cat)"/>
+  <path d="M94 22 L99 2 L79 14 Z" fill="var(--cat)"/>
+  <circle cx="70" cy="34" r="23" fill="var(--cat)"/>
+  <path d="M49 19 L46 8 L57 15 Z" fill="var(--cat-ear)"/>
+  <path d="M91 19 L94 8 L83 15 Z" fill="var(--cat-ear)"/>
+  <ellipse cx="61" cy="32" rx="5.2" ry="6.6" fill="var(--cat-eye)"/>
+  <ellipse cx="79" cy="32" rx="5.2" ry="6.6" fill="var(--cat-eye)"/>
+  <ellipse cx="61" cy="32" rx="1.9" ry="5.4" fill="#141118"/>
+  <ellipse cx="79" cy="32" rx="1.9" ry="5.4" fill="#141118"/>
+  <circle cx="62.9" cy="29" r="1.3" fill="#fff" opacity=".9"/>
+  <circle cx="80.9" cy="29" r="1.3" fill="#fff" opacity=".9"/>
+  <path d="M67 41 L73 41 L70 44.8 Z" fill="var(--cat-nose)"/>
+  <g stroke="var(--cat-line)" stroke-width="1.2" stroke-linecap="round" opacity=".7">
+    <path d="M56 39 L40 36"/><path d="M84 39 L100 36"/>
+  </g>
+  <ellipse cx="40" cy="52" rx="10" ry="6" fill="var(--cat)"/>
+  <ellipse cx="100" cy="52" rx="10" ry="6" fill="var(--cat)"/>
+</symbol>
+
+<!-- ===== carinha de gato (icone pequeno) ===== -->
+<symbol id="cat-face" viewBox="0 0 32 32">
+  <path d="M8 10 L6 1 L15 6 Z" fill="var(--cat)"/>
+  <path d="M24 10 L26 1 L17 6 Z" fill="var(--cat)"/>
+  <circle cx="16" cy="17" r="11" fill="var(--cat)"/>
+  <ellipse cx="12" cy="16" rx="2.4" ry="3.1" fill="var(--cat-eye)"/>
+  <ellipse cx="20" cy="16" rx="2.4" ry="3.1" fill="var(--cat-eye)"/>
+  <path d="M14.4 21 L17.6 21 L16 23 Z" fill="var(--cat-nose)"/>
+</symbol>
+
+<!-- ===== gato de perfil, rabo em pe (comemorando) ===== -->
+<symbol id="cat-walk" viewBox="0 0 120 100">
+  <path d="M94 56 C103 40 99 24 92 15" fill="none" stroke="var(--cat)" stroke-width="9" stroke-linecap="round"/>
+  <g fill="var(--cat)">
+    <rect x="32" y="64" width="9" height="28" rx="4.5"/>
+    <rect x="48" y="64" width="9" height="28" rx="4.5"/>
+    <rect x="76" y="64" width="9" height="28" rx="4.5"/>
+    <rect x="88" y="64" width="9" height="28" rx="4.5"/>
+    <rect x="26" y="40" width="72" height="34" rx="17"/>
+  </g>
+  <path d="M17 32 L13 13 L32 24 Z" fill="var(--cat)"/>
+  <path d="M43 30 L48 12 L31 22 Z" fill="var(--cat)"/>
+  <circle cx="30" cy="39" r="18" fill="var(--cat)"/>
+  <path d="M20 29 L17.5 18 L28 24 Z" fill="var(--cat-ear)"/>
+  <path d="M41 27 L44 17 L34 23 Z" fill="var(--cat-ear)"/>
+  <ellipse cx="24" cy="37" rx="4.6" ry="5.8" fill="var(--cat-eye)"/>
+  <ellipse cx="24" cy="37" rx="1.7" ry="4.7" fill="#141118"/>
+  <circle cx="25.6" cy="34.4" r="1.2" fill="#fff" opacity=".9"/>
+  <path d="M16 44 L21.5 44 L18.5 47.6 Z" fill="var(--cat-nose)"/>
+  <g stroke="var(--cat-line)" stroke-width="1.2" stroke-linecap="round" opacity=".7">
+    <path d="M14 43 L1 39"/><path d="M14 46 L2 48"/>
+  </g>
+  <ellipse cx="36.5" cy="92" rx="6" ry="3.4" fill="var(--cat-paw)"/>
+  <ellipse cx="52.5" cy="92" rx="6" ry="3.4" fill="var(--cat-paw)"/>
+  <ellipse cx="80.5" cy="92" rx="6" ry="3.4" fill="var(--cat-paw)"/>
+  <ellipse cx="92.5" cy="92" rx="6" ry="3.4" fill="var(--cat-paw)"/>
+</symbol>
+
+<!-- ===== gato de costas arqueadas (alerta) ===== -->
+<symbol id="cat-alert" viewBox="0 0 120 100">
+  <path d="M97 60 C110 44 108 22 96 10" fill="none" stroke="var(--cat)" stroke-width="13" stroke-linecap="round"/>
+  <g fill="var(--cat)">
+    <rect x="26" y="60" width="10" height="34" rx="5"/>
+    <rect x="84" y="60" width="10" height="34" rx="5"/>
+  </g>
+  <path d="M31 74 C25 44 42 28 60 28 C79 28 95 44 89 74" fill="none" stroke="var(--cat)" stroke-width="24" stroke-linecap="round"/>
+  <path d="M18 40 L10 22 L31 28 Z" fill="var(--cat)"/>
+  <path d="M43 32 L44 12 L29 26 Z" fill="var(--cat)"/>
+  <circle cx="29" cy="45" r="17" fill="var(--cat)"/>
+  <path d="M21 36 L16 26 L28 29 Z" fill="var(--cat-ear)"/>
+  <path d="M40 31 L41 21 L32 29 Z" fill="var(--cat-ear)"/>
+  <ellipse cx="23" cy="43" rx="4.8" ry="6" fill="var(--cat-eye)"/>
+  <ellipse cx="23" cy="43" rx="1.6" ry="5" fill="#141118"/>
+  <path d="M15 50 L20.5 50 L17.5 53.6 Z" fill="var(--cat-nose)"/>
+  <g stroke="var(--cat-line)" stroke-width="1.2" stroke-linecap="round" opacity=".7">
+    <path d="M13 49 L1 45"/><path d="M13 52 L2 54"/>
+  </g>
+  <ellipse cx="31" cy="94" rx="7" ry="3.6" fill="var(--cat-paw)"/>
+  <ellipse cx="89" cy="94" rx="7" ry="3.6" fill="var(--cat-paw)"/>
+</symbol>
+
+<!-- ===== patinha ===== -->
+<symbol id="paw" viewBox="0 0 24 24">
+  <ellipse cx="12" cy="16" rx="6.4" ry="5.4" fill="currentColor"/>
+  <ellipse cx="5" cy="10" rx="2.7" ry="3.5" fill="currentColor"/>
+  <ellipse cx="19" cy="10" rx="2.7" ry="3.5" fill="currentColor"/>
+  <ellipse cx="9.2" cy="5" rx="2.7" ry="3.6" fill="currentColor"/>
+  <ellipse cx="15.8" cy="5" rx="2.7" ry="3.6" fill="currentColor"/>
+</symbol>
+
+<!-- ===== novelo de la (decoracao) ===== -->
+<symbol id="ovillo" viewBox="0 0 40 40">
+  <circle cx="20" cy="20" r="15" fill="var(--cat-eye)" opacity=".85"/>
+  <g fill="none" stroke="var(--cat)" stroke-width="1.5" opacity=".55" stroke-linecap="round">
+    <path d="M8 14 C16 18 24 22 31 27"/><path d="M6 22 C14 24 22 28 27 33"/>
+    <path d="M13 7 C19 13 26 19 34 22"/><path d="M22 5 C25 12 30 18 35 21"/>
+  </g>
+</symbol>
+
+<!-- ===== icones de navegacao (traco simples) ===== -->
+<symbol id="ic-home" viewBox="0 0 24 24"><path d="M3 11L12 3l9 8M5.5 9.5V20h13V9.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="ic-list" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M8 7h12M8 12h12M8 17h12"/><circle cx="4" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="4" cy="17" r="1.1" fill="currentColor" stroke="none"/></g></symbol>
+<symbol id="ic-target" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/></g></symbol>
+<symbol id="ic-chart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20h17"/><path d="M4 15l5-5 3.5 3.5L20 6"/><path d="M15.5 6H20v4.5"/></g></symbol>
+<symbol id="ic-book" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h6a2.5 2.5 0 0 1 2.5 2.5v12A2 2 0 0 0 10.5 17H4z"/><path d="M20 4.5h-6A2.5 2.5 0 0 0 11.5 7v12A2 2 0 0 1 13.5 17H20z"/></g></symbol>
+<symbol id="ic-gear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M 21.45 9.82 A 9.70 9.70 0 0 1 21.45 14.18 L 18.63 14.54 A 7.10 7.10 0 0 1 17.52 16.47 L 18.62 19.09 A 9.70 9.70 0 0 1 14.84 21.28 L 13.11 19.01 A 7.10 7.10 0 0 1 10.89 19.01 L 9.16 21.28 A 9.70 9.70 0 0 1 5.38 19.09 L 6.48 16.47 A 7.10 7.10 0 0 1 5.37 14.54 L 2.55 14.18 A 9.70 9.70 0 0 1 2.55 9.82 L 5.37 9.46 A 7.10 7.10 0 0 1 6.48 7.53 L 5.38 4.91 A 9.70 9.70 0 0 1 9.16 2.72 L 10.89 4.99 A 7.10 7.10 0 0 1 13.11 4.99 L 14.84 2.72 A 9.70 9.70 0 0 1 18.62 4.91 L 17.52 7.53 A 7.10 7.10 0 0 1 18.63 9.46 Z"/><circle cx="12" cy="12" r="3.3"/></g></symbol>
+<symbol id="ic-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g></symbol>
+<symbol id="ic-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L21 21"/></g></symbol>
+<symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5.2V18.8M5.2 12H18.8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></symbol>
+<symbol id="ic-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+
+</defs>
+</svg>
+
+<div id="app">
+
+  <!-- ============ INICIO ============ -->
+  <section class="screen on" id="s-inicio">
+    <div class="top">
+      <div>
+        <h1 id="saludo">Hola</h1>
+        <div class="sub" id="fechaHoy"></div>
+      </div>
+      <div class="topbtns"><button class="iconbtn" onclick="toggleTema()" id="temaBtn">🌙</button><button class="iconbtn" onclick="ir('mas')" aria-label="Ajustes"><svg viewBox="0 0 24 24"><use href="#ic-gear"/></svg></button></div>
+    </div>
+    <div id="avisos"></div>
+    <div id="heroBox"></div>
+    <div id="paceBox"></div>
+    <div id="proxBox"></div>
+    <div id="pasoBox"></div>
+    <div class="card" id="ultimosBox"></div>
+  </section>
+
+  <!-- ============ MOVIMIENTOS ============ -->
+  <section class="screen" id="s-mov">
+    <div class="top"><div><h1>Movimientos</h1><div class="sub" id="movSub"></div></div>
+      <div class="topbtns"><button class="iconbtn" onclick="abrirMes()" aria-label="Mes"><svg viewBox="0 0 24 24"><use href="#ic-cal"/></svg></button><button class="iconbtn" onclick="ir('mas')" aria-label="Ajustes"><svg viewBox="0 0 24 24"><use href="#ic-gear"/></svg></button></div></div>
+    <div class="chips" id="filtros"></div>
+    <div id="movResumen"></div>
+    <div id="movLista"></div>
+  </section>
+
+  <!-- ============ PLAN ============ -->
+  <section class="screen" id="s-plan">
+    <div class="top"><div><h1>Mi plan</h1><div class="sub">Cuánto guardar y en qué orden</div></div><div class="topbtns"><button class="iconbtn" onclick="ir('mas')" aria-label="Ajustes"><svg viewBox="0 0 24 24"><use href="#ic-gear"/></svg></button></div></div>
+    <div id="planBox"></div>
+  </section>
+
+  <!-- ============ INVERTIR ============ -->
+  <section class="screen" id="s-inv">
+    <div class="top"><div><h1>Dónde poner la plata</h1><div class="sub">Guía y calculadoras</div></div><div class="topbtns"><button class="iconbtn" onclick="ir('mas')" aria-label="Ajustes"><svg viewBox="0 0 24 24"><use href="#ic-gear"/></svg></button></div></div>
+    <div id="invBox"></div>
+  </section>
+
+  <!-- ============ APRENDER ============ -->
+  <section class="screen" id="s-apr">
+    <div class="top"><div><h1>Aprender</h1><div class="sub">Resuelve tus dudas de plata</div></div>
+      <div class="topbtns"><button class="iconbtn" onclick="ir('mas')" aria-label="Ajustes"><svg viewBox="0 0 24 24"><use href="#ic-gear"/></svg></button></div></div>
+    <div id="aprBox"></div>
+  </section>
+
+  <!-- ============ MÁS ============ -->
+  <section class="screen" id="s-mas">
+    <div class="top"><div><h1>Más</h1><div class="sub">Respaldo y ajustes</div></div></div>
+    <div id="masBox"></div>
+  </section>
+
+</div>
+
+<button class="fab" onclick="abrirAdd()" aria-label="Agregar"><svg viewBox="0 0 24 24"><use href="#ic-plus"/></svg></button>
+
+<nav><div class="in">
+  <button data-s="inicio" class="on" onclick="ir('inicio')"><svg viewBox="0 0 24 24"><use href="#ic-home"/></svg>Inicio</button>
+  <button data-s="mov" onclick="ir('mov')"><svg viewBox="0 0 24 24"><use href="#ic-list"/></svg>Movimientos</button>
+  <button data-s="plan" onclick="ir('plan')"><svg viewBox="0 0 24 24"><use href="#ic-target"/></svg>Plan</button>
+  <button data-s="inv" onclick="ir('inv')"><svg viewBox="0 0 24 24"><use href="#ic-chart"/></svg>Invertir</button>
+  <button data-s="apr" onclick="ir('apr')"><svg viewBox="0 0 24 24"><use href="#ic-book"/></svg>Aprender</button>
+</div></nav>
+
+<div class="scrim" id="scrim" onclick="cerrarSheet()"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div class="body" id="sheetBody"></div></div>
+<div class="toast" id="toast"></div>
+
+<script id="seed" type="application/json"></script>
+<script>
+/* =========================================================================
+   Mi Plata — control de finanzas personales (Colombia)
+   Archivo único, funciona sin internet. Datos guardados en el dispositivo.
+   ========================================================================= */
+
+var HTML_ORIGINAL = document.documentElement.outerHTML;
+
+/* ---------- referencias de mercado (verificables y editables) ---------- */
+var REF = {
+  fecha: 'septiembre de 2026',
+  inflacion: 6.14,        // IPC anual, DANE (junio 2026)
+  banrep: 12.0,           // tasa de intervención Banco de la República (ago 2026)
+  smmlv: 1750905,         // salario mínimo 2026
+  auxTransporte: 249095,
+  uvt: 52374,             // UVT 2026 (DIAN)
+  gmfExentoUVT: 350,      // tope mensual exento del 4x1000
+  fogafin: 50000000,      // cobertura por entidad
+  usura: 25               // referencia: deuda cara si supera esto
+};
+REF.gmfExento = REF.gmfExentoUVT * REF.uvt;
+
+var CATS = {
+  out:[
+    {id:'arriendo',    n:'Arriendo',    e:'🏠', ess:true},
+    {id:'mercado',     n:'Mercado',     e:'🛒', ess:true},
+    {id:'servicios',   n:'Servicios',   e:'💡', ess:true},
+    {id:'transporte',  n:'Transporte',  e:'🚌', ess:true},
+    {id:'salud',       n:'Salud / EPS', e:'💊', ess:true},
+    {id:'celular',     n:'Celu / Wifi', e:'📱', ess:true},
+    {id:'deudas',      n:'Deudas',      e:'💳', ess:true},
+    {id:'educacion',   n:'Educación',   e:'📚', ess:true},
+    {id:'comidas',     n:'Comer fuera', e:'🍔', ess:false},
+    {id:'antojos',     n:'Antojos',     e:'🛍️', ess:false},
+    {id:'salidas',     n:'Salidas',     e:'🎉', ess:false},
+    {id:'belleza',     n:'Belleza',     e:'💅', ess:false},
+    {id:'subs',        n:'Suscripciones',e:'📺', ess:false},
+    {id:'familia',     n:'Familia',     e:'🎁', ess:false},
+    {id:'mascota',     n:'Mascota',     e:'🐾', ess:false},
+    {id:'otros_out',   n:'Otros',       e:'📦', ess:false}
+  ],
+  in:[
+    {id:'salario',       n:'Salario',      e:'💼'},
+    {id:'independiente', n:'Independiente',e:'🧾'},
+    {id:'prima',         n:'Prima',        e:'🎊'},
+    {id:'cesantias',     n:'Cesantías',    e:'🏦'},
+    {id:'ventas',        n:'Ventas',       e:'🏪'},
+    {id:'regalo',        n:'Regalo',       e:'💝'},
+    {id:'rendim',        n:'Rendimientos', e:'📈'},
+    {id:'otros_in',      n:'Otros',        e:'✨'}
+  ]
+};
+var CAT_MAP = {};
+CATS.out.concat(CATS.in).forEach(function(c){ CAT_MAP[c.id] = c; });
+
+var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+var MES_C = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+/* ---------- estado ---------- */
+var S = null;
+var VISTA = { mes: ymHoy(), filtro:'todo', pantalla:'inicio' };
+
+function estadoNuevo(){
+  return {
+    v:1, updatedAt:new Date().toISOString(),
+    perfil:{ nombre:'Salomé', ingresoEsperado:0, onboarded:false },
+    mov:[], metas:[], deudas:[], fijos:[],
+    ajustes:{ metaAhorroPct:20, colchonMeses:3, inflacion:REF.inflacion, tema:'auto',
+              ultimoRespaldo:null, movsDesdeRespaldo:0 }
+  };
+}
+
+/* ---------- utilidades ---------- */
+function ymHoy(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1); }
+function pad(n){ return (n<10?'0':'')+n; }
+function hoyISO(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function money(n){ var v=Math.round(Math.abs(n||0)); return '$'+v.toLocaleString('es-CO'); }
+function moneyS(n){ return (n<0?'−':'')+money(n); }
+function corto(n){
+  n = Math.abs(Math.round(n||0));
+  if(n>=1000000) return '$'+(n/1000000).toFixed(n>=10000000?0:1).replace('.',',')+'M';
+  if(n>=1000) return '$'+Math.round(n/1000)+'k';
+  return '$'+n;
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function nomMes(ym){ var p=ym.split('-'); return MESES[+p[1]-1]+' '+p[0]; }
+function fechaCorta(iso){
+  var p=iso.split('-'); var d=new Date(+p[0],+p[1]-1,+p[2]);
+  var hoy=new Date(); hoy.setHours(0,0,0,0);
+  var dif=Math.round((hoy-d)/86400000);
+  if(dif===0) return 'Hoy'; if(dif===1) return 'Ayer';
+  return +p[2]+' '+MES_C[+p[1]-1].toLowerCase();
+}
+function diasEnMes(ym){ var p=ym.split('-'); return new Date(+p[0],+p[1],0).getDate(); }
+function toast(t){ var e=document.getElementById('toast'); e.textContent=t; e.classList.add('on');
+  clearTimeout(e._t); e._t=setTimeout(function(){ e.classList.remove('on'); },2200); }
+
+/* =========================================================================
+   ALMACENAMIENTO — triple capa: localStorage + IndexedDB + semilla en el HTML
+   ========================================================================= */
+var LS_KEY='miplata_v1';
+var idb=null;
+
+function abrirIDB(){
+  return new Promise(function(res){
+    try{
+      if(!window.indexedDB) return res(null);
+      var r=indexedDB.open('miplata',1);
+      r.onupgradeneeded=function(){ r.result.createObjectStore('kv'); };
+      r.onsuccess=function(){ res(r.result); };
+      r.onerror=function(){ res(null); };
+      setTimeout(function(){ res(null); },2500);
+    }catch(e){ res(null); }
+  });
+}
+function idbGet(){
+  return new Promise(function(res){
+    if(!idb) return res(null);
+    try{ var t=idb.transaction('kv','readonly').objectStore('kv').get('state');
+      t.onsuccess=function(){ res(t.result||null); }; t.onerror=function(){ res(null); };
+    }catch(e){ res(null); }
+  });
+}
+function idbPut(o){
+  try{ if(idb) idb.transaction('kv','readwrite').objectStore('kv').put(o,'state'); }catch(e){}
+}
+var STORAGE_OK=true;
+function probarAlmacenamiento(){
+  try{
+    var k='__mp_probe__';
+    localStorage.setItem(k,'1');
+    var v=localStorage.getItem(k);
+    localStorage.removeItem(k);
+    return v==='1';
+  }catch(e){ return false; }
+}
+function lsGet(){ try{ var r=localStorage.getItem(LS_KEY); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function lsPut(o){ try{ localStorage.setItem(LS_KEY, JSON.stringify(o)); }catch(e){} }
+function semilla(){
+  try{ var t=document.getElementById('seed').textContent.trim(); return t?JSON.parse(t):null; }catch(e){ return null; }
+}
+function masNuevo(){
+  var cs=[].slice.call(arguments).filter(Boolean).filter(function(c){ return c && c.mov; });
+  if(!cs.length) return null;
+  cs.sort(function(a,b){ return (b.updatedAt||'').localeCompare(a.updatedAt||''); });
+  return cs[0];
+}
+function guardar(){
+  S.updatedAt=new Date().toISOString();
+  lsPut(S); idbPut(S);
+}
+
+/* =========================================================================
+   CÁLCULOS
+   ========================================================================= */
+function movsDe(ym){ return S.mov.filter(function(m){ return m.fecha.slice(0,7)===ym; }); }
+
+function resumen(ym){
+  var r={ing:0,gas:0,aho:0,ess:0,noEss:0,porCat:{}};
+  movsDe(ym).forEach(function(m){
+    if(m.tipo==='in'){ r.ing+=m.monto; }
+    else if(m.tipo==='save'){ r.aho+=m.monto; }
+    else{
+      r.gas+=m.monto;
+      var c=CAT_MAP[m.cat];
+      if(c && c.ess) r.ess+=m.monto; else r.noEss+=m.monto;
+      r.porCat[m.cat]=(r.porCat[m.cat]||0)+m.monto;
+    }
+  });
+  r.saldo = r.ing - r.gas - r.aho;
+  return r;
+}
+
+function mesesConDatos(){
+  var s={}; S.mov.forEach(function(m){ s[m.fecha.slice(0,7)]=1; });
+  return Object.keys(s).sort();
+}
+/* promedio de los meses completos anteriores (máx 3); si no hay, usa el mes actual */
+function base(){
+  var hoy=ymHoy();
+  var ms=mesesConDatos().filter(function(m){ return m<hoy; }).slice(-3);
+  var ing=0, ess=0, noEss=0, gas=0;
+  if(ms.length){
+    ms.forEach(function(m){ var r=resumen(m); ing+=r.ing; ess+=r.ess; noEss+=r.noEss; gas+=r.gas; });
+    ing/=ms.length; ess/=ms.length; noEss/=ms.length; gas/=ms.length;
+  }else{
+    var r=resumen(hoy); ing=r.ing; ess=r.ess; noEss=r.noEss; gas=r.gas;
+  }
+  if(ing<=0 && S.perfil.ingresoEsperado>0) ing=S.perfil.ingresoEsperado;
+  return {ing:ing, ess:ess, noEss:noEss, gas:gas, meses:ms.length, estimado:(ms.length===0)};
+}
+
+function ahorroTotal(){
+  var t=0; S.mov.forEach(function(m){ if(m.tipo==='save') t+=m.monto; }); return t;
+}
+function colchon(){
+  var t=0; S.mov.forEach(function(m){ if(m.tipo==='save' && (!m.destino||m.destino==='colchon')) t+=m.monto; });
+  return t;
+}
+function ahorradoMeta(id){
+  var t=0; S.mov.forEach(function(m){ if(m.tipo==='save' && m.destino===id) t+=m.monto; }); return t;
+}
+function deudasCaras(){ return S.deudas.filter(function(d){ return (d.tasa||0) >= REF.usura; }); }
+function totalDeuda(l){ return (l||S.deudas).reduce(function(a,d){ return a+(d.saldo||0); },0); }
+function interesMensual(d){ return (d.saldo||0) * (Math.pow(1+(d.tasa||0)/100, 1/12) - 1); }
+
+/* ---- motor del plan: escalera de prioridades ---- */
+function plan(){
+  var b=base();
+  var disponible = b.ing - b.ess - b.noEss;
+  var pct = S.ajustes.metaAhorroPct/100;
+  var ideal = b.ing * pct;
+  var sugerido = Math.max(0, Math.min(ideal, disponible));
+  var caras = deudasCaras();
+  var col = colchon();
+  var colchonMin = 1000000;
+  var colchonMeta = Math.max(b.ess,1) * S.ajustes.colchonMeses;
+
+  var pasos=[];
+  pasos.push({
+    t:'Colchón anti-susto', meta:colchonMin, act:Math.min(col,colchonMin),
+    d:'Un millón guardado y disponible. Es lo que evita que un imprevisto (el celular, una urgencia médica, el bus dañado) se convierta en una deuda con tarjeta.'
+  });
+  pasos.push({
+    t:'Matar las deudas caras', meta:totalDeuda(caras), act:0, deuda:true,
+    d: caras.length
+        ? 'Tienes '+caras.length+' deuda'+(caras.length>1?'s':'')+' por encima del '+REF.usura+'% E.A. Ninguna inversión legal en Colombia te paga eso, así que pagarlas es la mejor "inversión" que existe.'
+        : 'No registraste deudas caras. Si tienes tarjeta de crédito o un gota a gota, agrégalo aquí para verlo.'
+  });
+  pasos.push({
+    t:'Colchón de '+S.ajustes.colchonMeses+' meses', meta:colchonMeta, act:Math.min(col,colchonMeta),
+    d:'Con '+money(colchonMeta)+' cubres '+S.ajustes.colchonMeses+' meses de tus gastos indispensables. Es tu red si te quedas sin ingresos.'
+  });
+  var metasAct = S.metas.filter(function(m){ return ahorradoMeta(m.id) < m.objetivo; });
+  pasos.push({
+    t: metasAct.length ? 'Tus metas' : 'Ponte una meta',
+    meta: metasAct.reduce(function(a,m){ return a+m.objetivo; },0),
+    act: metasAct.reduce(function(a,m){ return a+ahorradoMeta(m.id); },0),
+    d: metasAct.length ? 'Viaje, estudio, computador, mudanza: lo que estés persiguiendo.'
+                       : 'Ahorrar sin nombre es difícil. Ponle nombre y fecha a lo que quieres.'
+  });
+  pasos.push({
+    t:'Largo plazo', meta:0, act:0,
+    d:'Con el colchón lleno y sin deudas caras, lo que sobra puede ir a plazos más largos y con más riesgo. Mira la pestaña Invertir.'
+  });
+
+  /* paso actual */
+  var idx=0;
+  if(col >= colchonMin){
+    idx=1;
+    if(totalDeuda(caras) <= 0){
+      idx=2;
+      if(col >= colchonMeta){
+        idx=3;
+        if(!metasAct.length || pasos[3].act >= pasos[3].meta) idx=4;
+      }
+    }
+  }
+  pasos.forEach(function(p,i){ p.estado = i<idx ? 'done' : (i===idx?'now':''); });
+
+  /* modo rescate */
+  var rescate=null;
+  if(disponible < 0){
+    var r=resumen(VISTA.mes), top=[];
+    Object.keys(r.porCat).forEach(function(k){
+      var c=CAT_MAP[k]; if(c && !c.ess) top.push({c:c, v:r.porCat[k]});
+    });
+    top.sort(function(a,b){ return b.v-a.v; });
+    rescate={ hueco:-disponible, top:top.slice(0,3) };
+  }
+
+  return {b:b, disponible:disponible, ideal:ideal, sugerido:sugerido, pct:pct,
+          pasos:pasos, idx:idx, col:col, colchonMin:colchonMin, colchonMeta:colchonMeta,
+          caras:caras, rescate:rescate, metasAct:metasAct};
+}
+
+/* =========================================================================
+   NAVEGACIÓN
+   ========================================================================= */
+function ir(s){
+  VISTA.pantalla=s;
+  var els=document.querySelectorAll('.screen');
+  for(var i=0;i<els.length;i++) els[i].classList.toggle('on', els[i].id==='s-'+s);
+  var bs=document.querySelectorAll('nav button');
+  for(var j=0;j<bs.length;j++) bs[j].classList.toggle('on', bs[j].dataset.s===s);
+  window.scrollTo(0,0);
+  pintar();
+}
+function pintar(){
+  if(VISTA.pantalla==='inicio') pintarInicio();
+  if(VISTA.pantalla==='mov') pintarMov();
+  if(VISTA.pantalla==='plan') pintarPlan();
+  if(VISTA.pantalla==='inv') pintarInv();
+  if(VISTA.pantalla==='apr') pintarApr();
+  if(VISTA.pantalla==='mas') pintarMas();
+}
+function pintarTodo(){ guardar(); pintar(); }
+
+/* =========================================================================
+   PANTALLA: INICIO
+   ========================================================================= */
+function pintarInicio(){
+  var n=S.perfil.nombre;
+  var h=new Date().getHours();
+  var sal = h<12?'Buenos días':(h<19?'Buenas tardes':'Buenas noches');
+  document.getElementById('saludo').textContent = sal + (n?', '+n:'');
+  var d=new Date();
+  document.getElementById('fechaHoy').textContent = d.getDate()+' de '+MESES[d.getMonth()];
+
+  pintarAvisos();
+
+  var ym=ymHoy(), r=resumen(ym);
+  var pv=prevision();
+  var neg = r.saldo<0;
+  document.getElementById('heroBox').innerHTML =
+    '<div class="hero">'+
+      '<div class="lbl">Te queda este mes</div>'+
+      '<div class="big tnum'+(neg?' neg':'')+'">'+moneyS(r.saldo)+'</div>'+
+      '<div class="note">'+(neg
+        ? 'Vas gastando más de lo que entró en '+MESES[d.getMonth()]+'.'
+        : (pv.porPagar>0
+            ? 'De eso, <b>'+money(pv.porPagar)+'</b> ya tienen dueño: son tus pagos con fecha.'
+            : 'Después de tus gastos y de lo que ya guardaste.'))+'</div>'+
+      '<div class="split">'+
+        '<div><div class="k">Entró</div><div class="v in tnum">'+corto(r.ing)+'</div></div>'+
+        '<div><div class="k">Gastaste</div><div class="v out tnum">'+corto(r.gas)+'</div></div>'+
+        '<div><div class="k">Guardaste</div><div class="v save tnum">'+corto(r.aho)+'</div></div>'+
+      '</div>'+
+    '</div>';
+
+  /* ritmo diario */
+  var dias=diasEnMes(ym), hoyD=d.getDate(), restan=Math.max(1,dias-hoyD+1);
+  var libre = r.saldo - pv.porPagar;          /* lo comprometido no es gastable */
+  var porDia = libre>0 ? libre/restan : 0;
+  document.getElementById('paceBox').innerHTML =
+    '<div class="card">'+
+      '<h3>Tu ritmo</h3>'+
+      (r.ing>0 || r.gas>0
+        ? '<div class="pace"><b class="tnum">'+money(porDia)+'</b><span class="muted s13">por día, '+restan+' día'+(restan>1?'s':'')+' hasta fin de mes</span></div>'+
+          (libre<=0
+            ? '<div class="s13 muted mt8">'+(r.saldo<=0
+                ? 'Estás en rojo: lo ideal es no gastar nada más de lo no esencial y revisar tu plan.'
+                : 'Con lo que te queda no alcanzas a cubrir tus pagos con fecha, así que no hay nada libre para gastar.')+'</div>'
+            : (pv.porPagar>0
+                ? '<div class="s13 muted mt8">Es lo que puedes gastar libre: ya le restamos los <b>'+money(pv.porPagar)+'</b> de pagos que te faltan.</div>'
+                : ''))
+        : '<div class="s13 muted">Registra tu primer ingreso y tus gastos con el botón <b>+</b> para ver tu ritmo.</div>')+
+    '</div>';
+
+  pintarProximos();
+
+  /* siguiente paso */
+  var p=plan();
+  var paso=p.pasos[p.idx];
+  var falta=Math.max(0, paso.meta - paso.act);
+  document.getElementById('pasoBox').innerHTML =
+    '<div class="card">'+
+      '<h3>Tu siguiente paso</h3>'+
+      '<div style="font-weight:660;font-size:15.5px">'+esc(paso.t)+'</div>'+
+      '<div class="s13 muted mt8">'+esc(paso.d)+'</div>'+
+      (paso.meta>0
+        ? '<div class="mt12"><div class="bar"><i class="c" style="width:'+Math.min(100,paso.meta?paso.act/paso.meta*100:0)+'%"></i></div>'+
+          '<div class="row mt8 s12 muted"><span>'+money(paso.act)+' de '+money(paso.meta)+'</span>'+
+          '<span>Faltan <b>'+money(falta)+'</b></span></div></div>'
+        : '')+
+      (p.sugerido>0
+        ? '<div class="banner ok mt12"><span class="e">💚</span><div>Este mes podrías guardar <b>'+money(p.sugerido)+'</b>'+
+          (falta>0 && p.sugerido>0 ? '. A ese ritmo completas este paso en <b>'+Math.ceil(falta/p.sugerido)+' mes'+(Math.ceil(falta/p.sugerido)>1?'es':'')+'</b>.' : '.')+
+          '</div></div>'
+        : '')+
+      '<button class="btn ghost sm mt12" style="width:100%" onclick="ir(\'plan\')">Ver todo el plan</button>'+
+    '</div>';
+
+  /* últimos movimientos */
+  var ult=S.mov.slice().sort(function(a,b){
+    return b.fecha.localeCompare(a.fecha) || (b.creado||'').localeCompare(a.creado||'');
+  }).slice(0,6);
+  document.getElementById('ultimosBox').innerHTML =
+    '<h3>Últimos movimientos</h3>'+
+    (ult.length ? ult.map(itemHTML).join('')
+      : '<div class="empty"><div class="catstage"><svg class="cat cat-md" viewBox="0 0 120 120"><use href="#cat-sit"/></svg></div><b>Empieza aquí</b>'+
+        '<p>Toca el botón <b>+</b> y registra lo que entró o lo que gastaste hoy. Con dos semanas de datos el plan ya te dice cosas útiles.</p></div>');
+}
+
+function pintarAvisos(){
+  var out='', a=S.ajustes;
+  if(!STORAGE_OK){
+    out += '<div class="banner bad"><span class="e">\u26d4</span><div><b>Este navegador no est\u00e1 guardando tus datos.</b> '+
+      'Lo que registres se borra al cerrar la app. Antes de cerrar, ve a <b>M\u00e1s</b> y descarga '+
+      '\u00abMi Plata con mis datos\u00bb \u2014 ese archivo s\u00ed conserva todo.'+
+      '<button onclick="ir(\'mas\')">Ir a copia de seguridad \u2192</button></div></div>';
+  }
+  var dias = a.ultimoRespaldo ? Math.floor((Date.now()-new Date(a.ultimoRespaldo))/86400000) : null;
+  if(S.mov.length>=5 && (dias===null || dias>=14 || a.movsDesdeRespaldo>=40)){
+    out += '<div class="banner warn"><span class="e">🛟</span><div><b>Haz una copia de tus datos.</b> '+
+      (dias===null?'Todavía no has hecho ninguna.':'La última fue hace '+dias+' días.')+
+      ' Si se borran los datos del navegador, se pierde todo.'+
+      '<button onclick="ir(\'mas\');setTimeout(function(){document.getElementById(\'respBox\').scrollIntoView({behavior:\'smooth\'})},250)">Respaldar ahora →</button></div></div>';
+  }
+  var pv=prevision();
+  if(pv.vencidos.length){
+    out += '<div class="banner bad"><span class="e">\u23f0</span><div><b>'+
+      (pv.vencidos.length===1 ? 'Se te venció un pago: '+esc(pv.vencidos[0].nombre)+' ('+money(pv.vencidos[0].monto)+').'
+                              : 'Se te vencieron '+pv.vencidos.length+' pagos.')+
+      '</b> Si ya los pagaste, regístralos para que las cuentas cuadren.</div></div>';
+  }
+  var p=plan();
+  if(p.rescate){
+    out += '<div class="banner bad"><span class="e">⚠️</span><div><b>Estás gastando '+money(p.rescate.hueco)+' más de lo que ganas al mes.</b> '+
+      'Antes de pensar en ahorrar, hay que cerrar ese hueco. Mira tu plan.</div></div>';
+  }
+  document.getElementById('avisos').innerHTML=out;
+}
+
+function itemHTML(m){
+  var c=CAT_MAP[m.cat]||{n:'Otros',e:'📦'};
+  var etq = m.tipo==='save' ? (m.destino && m.destino!=='colchon'
+              ? (function(){ var g=S.metas.filter(function(x){return x.id===m.destino;})[0]; return g?g.nombre:'Ahorro'; })()
+              : 'Colchón') : c.n;
+  var sig = m.tipo==='in' ? '+' : (m.tipo==='out' ? '−' : '→');
+  return '<div class="item" onclick="editarMov(\''+m.id+'\')">'+
+    '<div class="ic '+m.tipo+'">'+(m.tipo==='save'
+      ?'<svg class="cat" style="width:25px" viewBox="0 0 32 32"><use href="#cat-face"/></svg>':c.e)+'</div>'+
+    '<div style="min-width:0"><div class="nm">'+esc(m.nota||etq)+'</div>'+
+    '<div class="dt">'+fechaCorta(m.fecha)+(m.nota?' · '+esc(etq):'')+'</div></div>'+
+    '<div class="amt '+m.tipo+' tnum">'+sig+money(m.monto).slice(1)+'</div></div>';
+}
+
+/* =========================================================================
+   PANTALLA: MOVIMIENTOS
+   ========================================================================= */
+function pintarMov(){
+  var ym=VISTA.mes, r=resumen(ym);
+  document.getElementById('movSub').textContent = nomMes(ym);
+  document.getElementById('filtros').innerHTML =
+    [['todo','Todo'],['out','Gastos'],['in','Ingresos'],['save','Ahorro']].map(function(f){
+      return '<button class="chip'+(VISTA.filtro===f[0]?' on':'')+'" onclick="VISTA.filtro=\''+f[0]+'\';pintarMov()">'+f[1]+'</button>';
+    }).join('');
+
+  var cats=[];
+  Object.keys(r.porCat).forEach(function(k){ cats.push({c:CAT_MAP[k]||{n:k,e:'📦'}, v:r.porCat[k]}); });
+  cats.sort(function(a,b){ return b.v-a.v; });
+  var max = cats.length?cats[0].v:1;
+
+  document.getElementById('movResumen').innerHTML =
+    '<div class="card"><div class="row"><div>'+
+      '<div class="s12 muted">Saldo de '+nomMes(ym)+'</div>'+
+      '<div class="tnum" style="font-size:26px;font-weight:700;letter-spacing:-.02em'+(r.saldo<0?';color:var(--out)':'')+'">'+moneyS(r.saldo)+'</div></div>'+
+      '<div class="s12 muted" style="text-align:right;line-height:1.7">'+
+        '<div><b style="color:var(--in)">'+corto(r.ing)+'</b> entró</div>'+
+        '<div><b style="color:var(--out)">'+corto(r.gas)+'</b> gastado</div>'+
+        '<div><b style="color:var(--save)">'+corto(r.aho)+'</b> guardado</div>'+
+      '</div></div>'+
+      (r.gas>0 ? '<div class="bar mt16">'+
+        '<i class="a" style="width:'+(r.ess/(r.ing||r.gas)*100)+'%"></i>'+
+        '<i style="background:var(--warn);width:'+(r.noEss/(r.ing||r.gas)*100)+'%"></i>'+
+        '<i class="b" style="width:'+(r.aho/(r.ing||r.gas)*100)+'%"></i></div>'+
+        '<div class="row mt8 s12 muted"><span>🟥 Indispensable '+corto(r.ess)+'</span>'+
+        '<span>🟧 Gustos '+corto(r.noEss)+'</span><span>🟪 Ahorro '+corto(r.aho)+'</span></div>' : '')+
+    '</div>'+
+    (cats.length ? '<div class="card"><h3>En qué se te fue</h3>'+cats.map(function(x){
+      return '<div class="catrow"><div class="e">'+x.c.e+'</div><div class="g">'+
+        '<div class="t"><span>'+esc(x.c.n)+'</span><b class="tnum">'+money(x.v)+'</b></div>'+
+        '<div class="mini"><i class="'+(x.c.ess?'ess':'')+'" style="width:'+(x.v/max*100)+'%"></i></div>'+
+      '</div></div>'; }).join('')+
+      '<div class="s12 faint mt8">Verde = indispensable · Naranja = se puede recortar</div></div>' : '')+
+    trendHTML() + pendMesHTML(ym);
+
+  var lista=movsDe(ym).filter(function(m){ return VISTA.filtro==='todo'||m.tipo===VISTA.filtro; })
+    .sort(function(a,b){ return b.fecha.localeCompare(a.fecha) || (b.creado||'').localeCompare(a.creado||''); });
+
+  document.getElementById('movLista').innerHTML = lista.length
+    ? '<div class="card">'+lista.map(itemHTML).join('')+'</div>'
+    : '<div class="empty"><div class="catstage"><svg class="cat cat-md" viewBox="0 0 120 120"><use href="#cat-sleep"/></svg></div>'+
+      '<b>Nada registrado en '+nomMes(ym)+'</b><p>Toca <b>+</b> para agregar.</p></div>';
+}
+
+function trendHTML(){
+  var ms=mesesConDatos().slice(-6);
+  if(ms.length<2) return '';
+  var datos=ms.map(function(m){ var r=resumen(m); return {m:m, ing:r.ing, gas:r.gas+r.aho}; });
+  var max=Math.max.apply(null, datos.map(function(d){ return Math.max(d.ing,d.gas); }))||1;
+  return '<div class="card"><h3>Últimos meses</h3><div class="trend">'+
+    datos.map(function(d){
+      return '<div class="col"><div class="b2" style="height:'+(d.ing/max*100)+'%"></div>'+
+             '<div class="b1" style="height:'+(d.gas/max*100)+'%"></div></div>'; }).join('')+
+    '</div><div class="trendlbl">'+datos.map(function(d){
+      return '<div>'+MES_C[+d.m.split('-')[1]-1]+'</div>'; }).join('')+'</div>'+
+    '<div class="s12 faint mt8">Barra clara arriba = lo que entró · Barra rosada abajo = lo que salió</div></div>';
+}
+
+function abrirMes(){
+  var ms=mesesConDatos(); if(ms.indexOf(ymHoy())<0) ms.push(ymHoy());
+  var hy=new Date(), sig=new Date(hy.getFullYear(), hy.getMonth()+1, 1);
+  var ymSig=sig.getFullYear()+'-'+pad(sig.getMonth()+1);
+  if(ms.indexOf(ymSig)<0) ms.push(ymSig);
+  ms.sort().reverse();
+  sheet('Elige el mes',
+    ms.map(function(m){
+      return '<button class="btn '+(m===VISTA.mes?'soft':'ghost')+'" style="margin-bottom:8px" '+
+        'onclick="VISTA.mes=\''+m+'\';cerrarSheet();pintarMov()">'+nomMes(m)+'</button>'; }).join(''));
+}
+
+/* =========================================================================
+   PANTALLA: PLAN
+   ========================================================================= */
+function pintarPlan(){
+  var p=plan(), b=p.b;
+  var out='';
+
+  if(b.ing<=0){
+    out += '<div class="empty"><div class="catstage"><svg class="cat cat-md" viewBox="0 0 120 120"><use href="#cat-sit"/></svg></div><b>Necesito saber cuánto entra</b>'+
+      '<p>Registra tus ingresos del mes con el botón <b>+</b>, o dime cuánto esperas ganar al mes para calcular tu plan.</p>'+
+      '<button class="btn soft mt16" onclick="editarPerfil()">Decir cuánto gano al mes</button></div>';
+    document.getElementById('planBox').innerHTML=out; return;
+  }
+
+  /* rescate */
+  if(p.rescate){
+    out += '<div class="card" style="border-color:var(--out)">'+
+      '<div class="row" style="align-items:flex-start">'+
+        '<h3 style="color:var(--out);margin:0">Primero: cerrar el hueco</h3>'+
+        '<svg class="cat" style="width:58px;flex:none;margin:-6px -2px 0 0" viewBox="0 0 120 100"><use href="#cat-alert"/></svg>'+
+      '</div>'+
+      '<div class="s14">Cada mes gastas <b style="color:var(--out)">'+money(p.rescate.hueco)+'</b> más de lo que ganas. '+
+      'Ahorrar es imposible mientras eso pase — el objetivo de este mes no es guardar, es llegar a cero.</div>'+
+      (p.rescate.top.length
+        ? '<div class="mt12 s13 muted">Donde más rápido puedes recortar:</div>'+
+          p.rescate.top.map(function(x){
+            return '<div class="row mt8 s14"><span>'+x.c.e+' '+esc(x.c.n)+'</span><b class="tnum" style="color:var(--out)">'+money(x.v)+'</b></div>';
+          }).join('')
+        : '')+
+      '</div>';
+  }
+
+  /* cuánto guardar */
+  var pctReal = b.ing>0 ? p.sugerido/b.ing*100 : 0;
+  out += '<div class="card">'+
+    '<h3>Cuánto guardar al mes</h3>'+
+    '<div style="font-size:33px;font-weight:700;letter-spacing:-.03em" class="tnum">'+money(p.sugerido)+'</div>'+
+    '<div class="s13 muted mt8">'+
+      (p.sugerido<=0
+        ? 'Con tus números de ahora no sobra nada. No es un fracaso: es información. Empieza recortando lo no esencial.'
+        : (p.sugerido < p.ideal
+            ? 'Tu meta es el '+S.ajustes.metaAhorroPct+'% ('+money(p.ideal)+'), pero con tus gastos actuales lo realista es '+
+              Math.round(pctReal)+'%. Mejor guardar '+money(p.sugerido)+' todos los meses que prometerte '+money(p.ideal)+' y no lograrlo.'
+            : 'Es el '+S.ajustes.metaAhorroPct+'% de lo que ganas. Sepáralo apenas te caiga la plata, no al final del mes.'))+
+    '</div>'+
+    '<div class="mt16" style="border-top:1px solid var(--line);padding-top:12px">'+
+      '<div class="kv"><span>Entra al mes'+(b.estimado?' <span class="faint">(estimado)</span>':'')+'</span><b class="tnum">'+money(b.ing)+'</b></div>'+
+      '<div class="kv"><span>Gastos indispensables</span><b class="tnum">'+money(b.ess)+'</b></div>'+
+      '<div class="kv"><span>Gustos y extras</span><b class="tnum">'+money(b.noEss)+'</b></div>'+
+      '<div class="kv big"><span>Te sobra</span><b class="tnum" '+(p.disponible<0?'style="color:var(--out)"':'')+'>'+moneyS(p.disponible)+'</b></div>'+
+    '</div>'+
+    (b.meses>0 ? '<div class="s12 faint mt8">Promedio de tus últimos '+b.meses+' mes'+(b.meses>1?'es':'')+'.</div>'
+               : '<div class="s12 faint mt8">Con más meses registrados, estos números se vuelven mucho más precisos.</div>')+
+  '</div>';
+
+  /* 50/30/20 */
+  var t=b.ess+b.noEss+p.sugerido;
+  if(t>0){
+    var a1=b.ess/b.ing*100, a2=b.noEss/b.ing*100, a3=p.sugerido/b.ing*100;
+    out += '<div class="card"><h3>Cómo se reparte tu plata</h3>'+
+      '<div class="bar" style="height:13px"><i class="a" style="width:'+Math.min(100,a1)+'%"></i>'+
+      '<i style="background:var(--warn);width:'+Math.min(100,a2)+'%"></i>'+
+      '<i class="b" style="width:'+Math.min(100,a3)+'%"></i></div>'+
+      '<div class="mt12">'+
+        cmpRow('Indispensable', a1, 50, 'var(--out)')+
+        cmpRow('Gustos', a2, 30, 'var(--warn)')+
+        cmpRow('Ahorro', a3, S.ajustes.metaAhorroPct, 'var(--save)')+
+      '</div>'+
+      '<div class="s12 faint mt8">La referencia clásica es 50 / 30 / '+S.ajustes.metaAhorroPct+'. Es una guía, no una regla: '+
+      'en ciudades caras el arriendo solo ya se lleva más del 50%.</div></div>';
+  }
+
+  /* escalera */
+  out += '<div class="card"><h3>El orden importa</h3>'+
+    p.pasos.map(function(s,i){
+      return '<div class="step '+s.estado+'"><div class="n">'+(s.estado==='done'?'✓':(i+1))+'</div><div>'+
+        '<div class="ti">'+esc(s.t)+'</div><div class="de">'+esc(s.d)+'</div>'+
+        (s.meta>0 && s.estado!=='done' ? '<div class="pill">Faltan '+money(Math.max(0,s.meta-s.act))+'</div>' : '')+
+        (s.estado==='done' ? '<div class="pill" style="background:var(--accent-soft);color:var(--accent-ink)">Listo ✓</div>' : '')+
+      '</div></div>'; }).join('')+
+  '</div>';
+
+  /* colchón */
+  out += '<div class="card"><div class="row"><h3 style="margin:0">Mi colchón</h3>'+
+    '<button class="chip" onclick="abrirAdd(\'save\')">+ Guardar</button></div>'+
+    '<div class="row" style="align-items:flex-end;gap:8px">'+
+      '<div><div style="font-size:27px;font-weight:700;letter-spacing:-.02em;margin:10px 0 2px" class="tnum">'+money(p.col)+'</div>'+
+      '<div class="s13 muted">Meta: '+money(p.colchonMeta)+' ('+S.ajustes.colchonMeses+' meses de gastos indispensables)</div></div>'+
+      '<svg class="cat" style="width:76px;flex:none" viewBox="0 0 120 120"><use href="#cat-sleep"/></svg>'+
+    '</div>'+
+    '<div class="bar mt12"><i class="c" style="width:'+Math.min(100,p.colchonMeta?p.col/p.colchonMeta*100:0)+'%"></i></div>'+
+    '<div class="banner ok mt12"><span class="e">👜</span><div>Guárdalo en un <b>Bolsillo</b> de tu app '+
+    'Bancolombia. Es gratis y esa plata deja de sumar a tu saldo disponible, así no te la gastas sin pensar.</div></div>'+
+  '</div>';
+
+  /* metas */
+  out += '<div class="card"><div class="row"><h3 style="margin:0">Mis metas</h3>'+
+    '<button class="chip" onclick="editarMeta()">+ Nueva</button></div>'+
+    (S.metas.length ? S.metas.map(function(g){
+      var ah=ahorradoMeta(g.id), pc=g.objetivo?Math.min(100,ah/g.objetivo*100):0;
+      var falta=Math.max(0,g.objetivo-ah);
+      var porMes = p.sugerido>0 ? p.sugerido : 0;
+      var eta = (falta>0 && porMes>0) ? Math.ceil(falta/porMes) : 0;
+      return '<div class="goal" onclick="editarMeta(\''+g.id+'\')">'+
+        '<div class="hd"><span class="e">'+(g.emoji||'🎯')+'</span><span class="nm">'+esc(g.nombre)+'</span>'+
+        '<span class="pc tnum">'+Math.round(pc)+'%</span></div>'+
+        '<div class="bar"><i class="c" style="width:'+pc+'%"></i></div>'+
+        '<div class="ft"><span class="tnum">'+money(ah)+' de '+money(g.objetivo)+'</span>'+
+        '<span>'+(falta<=0?'¡Lograda! 🐾':(eta?'≈ '+eta+' mes'+(eta>1?'es':''):'Faltan '+money(falta)))+'</span></div>'+
+      '</div>'; }).join('')
+      : '<div class="s13 muted mt8">Ahorrar «porque sí» casi nunca funciona. Ponle nombre: un viaje, un computador, el semestre, mudarte.</div>')+
+  '</div>';
+
+  /* deudas */
+  var intTot=S.deudas.reduce(function(a,d){ return a+interesMensual(d); },0);
+  out += '<div class="card"><div class="row"><h3 style="margin:0">Mis deudas</h3>'+
+    '<button class="chip" onclick="editarDeuda()">+ Agregar</button></div>'+
+    (S.deudas.length
+      ? '<div class="s13 muted mt8">Págalas de mayor a menor tasa: así pagas menos intereses en total.</div>'+
+        S.deudas.slice().sort(function(a,b){ return (b.tasa||0)-(a.tasa||0); }).map(function(d){
+          var im=interesMensual(d);
+          return '<div class="item" onclick="editarDeuda(\''+d.id+'\')">'+
+            '<div class="ic '+((d.tasa||0)>=REF.usura?'out':'')+'">'+((d.tasa||0)>=REF.usura?'🔥':'💳')+'</div>'+
+            '<div style="min-width:0"><div class="nm">'+esc(d.nombre)+'</div>'+
+            '<div class="dt">'+(d.tasa||0).toString().replace('.',',')+'% E.A. · te cuesta '+money(im)+'/mes en intereses'+
+            (d.cuota>0&&d.dia>0 ? '<br>Cuota '+money(d.cuota)+' el día '+d.dia : '')+'</div></div>'+
+            '<div class="amt out tnum">'+money(d.saldo)+'</div></div>'; }).join('')+
+        '<div class="banner '+(intTot>0?'bad':'ok')+' mt12"><span class="e">🔥</span><div>'+
+        'Solo en intereses, tus deudas te cuestan <b>'+money(intTot)+' al mes</b> — '+money(intTot*12)+' al año. '+
+        'Eso es plata que se va sin comprarte nada.</div></div>'+
+        '<div class="s12 faint mt8">De cada cuota que registras, Mi Plata descuenta primero los intereses del mes '+
+        'y baja el saldo con el resto. Es un estimado: si vuelves a usar la tarjeta o te cobran algo extra, '+
+        'el saldo real cambia. Compáralo con tu extracto de vez en cuando y corrígelo aquí.</div>'
+      : '<div class="s13 muted mt8">Si tienes tarjeta de crédito, un crédito de libre inversión o un gota a gota, agrégalo. '+
+        'Saber cuánto te cuestan al mes cambia las prioridades.</div>')+
+  '</div>';
+
+  /* gastos fijos */
+  var totFijos=S.fijos.reduce(function(a,f){ return a+(f.monto||0); },0);
+  out += '<div class="card"><div class="row"><h3 style="margin:0">Pagos fijos del mes</h3>'+
+    '<button class="chip" onclick="editarFijo()">+ Agregar</button></div>'+
+    (S.fijos.length
+      ? S.fijos.slice().sort(function(a,b){ return a.dia-b.dia; }).map(function(f){
+          var c=CAT_MAP[f.cat]||{e:'📦',n:'Otros'};
+          return '<div class="item" onclick="editarFijo(\''+f.id+'\')">'+
+            '<div class="ic out">'+c.e+'</div>'+
+            '<div style="min-width:0"><div class="nm">'+esc(f.nombre)+'</div>'+
+            '<div class="dt">Vence el '+f.dia+' de cada mes</div></div>'+
+            '<div class="amt out tnum">'+money(f.monto)+'</div></div>'; }).join('')+
+        '<div class="row mt12 s13"><span class="muted">Total fijo al mes</span>'+
+        '<b class="tnum">'+money(totFijos)+'</b></div>'
+      : '<div class="s13 muted mt8">El arriendo, los servicios, el gimnasio. Al ponerles fecha, '+
+        'Mi Plata te avisa antes de que venzan y calcula si te va a alcanzar.</div>')+
+  '</div>';
+
+  /* ajuste de meta */
+  out += '<div class="card flat"><h3>Ajustar mi plan</h3>'+
+    '<label class="f">Quiero ahorrar este % de lo que gano</label>'+
+    '<input class="f" type="number" min="1" max="80" value="'+S.ajustes.metaAhorroPct+'" '+
+      'onchange="S.ajustes.metaAhorroPct=Math.max(1,Math.min(80,+this.value||20));pintarTodo()">'+
+    '<label class="f">Quiero un colchón de cuántos meses</label>'+
+    '<select class="f" onchange="S.ajustes.colchonMeses=+this.value;pintarTodo()">'+
+      [1,2,3,4,5,6].map(function(m){ return '<option value="'+m+'"'+(S.ajustes.colchonMeses===m?' selected':'')+'>'+m+' mes'+(m>1?'es':'')+'</option>'; }).join('')+
+    '</select>'+
+    '<button class="btn ghost mt16" onclick="editarPerfil()">Cambiar mi nombre / ingreso esperado</button>'+
+  '</div>';
+
+  document.getElementById('planBox').innerHTML=out;
+}
+function cmpRow(nm, real, ideal, col){
+  var d=real-ideal;
+  return '<div class="row s13" style="padding:6px 0">'+
+    '<span><b style="color:'+col+'">■</b> '+nm+'</span>'+
+    '<span class="tnum"><b>'+Math.round(real)+'%</b> <span class="faint">/ '+Math.round(ideal)+'% ideal</span>'+
+    (Math.abs(d)>=5 ? ' <span style="color:'+(d>0&&nm!=='Ahorro'?'var(--out)':'var(--accent)')+'">'+(d>0?'+':'')+Math.round(d)+'</span>' : '')+
+    '</span></div>';
+}
+
+/* =========================================================================
+   PANTALLA: INVERTIR
+   ========================================================================= */
+function pintarInv(){
+  var p=plan();
+  var col=p.col, listo = col>=p.colchonMeta && totalDeuda(p.caras)<=0;
+
+  var out='';
+  out += '<div class="banner '+(listo?'ok':'warn')+'"><span class="e">'+(listo?'🚀':'🧱')+'</span><div>'+
+    (listo
+      ? '<b>Ya tienes la base.</b> Colchón completo y sin deudas caras: de aquí en adelante tiene sentido pensar en plazos más largos.'
+      : '<b>Antes de invertir, la base.</b> '+
+        (totalDeuda(p.caras)>0 ? 'Tienes '+money(totalDeuda(p.caras))+' en deuda cara — pagarla te «rinde» más que cualquier inversión. '
+                               : 'Te falta colchón: '+money(Math.max(0,p.colchonMeta-col))+' para llegar a '+S.ajustes.colchonMeses+' meses. ')+
+        'Invertir con deudas caras encima es como llenar un balde roto.')+
+    '</div></div>';
+
+  out += '<div class="card"><h3>Regla que no falla</h3>'+
+    '<div class="s14">Si tu plata rinde <b>menos que la inflación</b>, cada mes compra menos cosas — así esté «creciendo».</div>'+
+    '<div class="kv mt12"><span>Inflación anual en Colombia</span><b class="tnum" style="color:var(--out)">'+S.ajustes.inflacion.toString().replace('.',',')+'%</b></div>'+
+    '<div class="kv"><span>Cuenta de ahorros común</span><b class="tnum" style="color:var(--out)">0% – 1% E.A.</b></div>'+
+    '<div class="kv"><span>Lo mínimo que deberías buscar</span><b class="tnum" style="color:var(--accent)">'+
+      Math.ceil(S.ajustes.inflacion)+'% E.A. o más</b></div>'+
+    '<div class="s12 faint mt8">Guardar '+money(1000000)+' un año en una cuenta que no paga intereses = perder cerca de '+
+      money(1000000*S.ajustes.inflacion/100)+' de poder de compra.</div></div>';
+
+  out += '<div class="card"><h3>Según para cuándo la necesitas</h3></div>';
+
+  out += opcion('💳','Gastos del día a día','low','Ya mismo',
+    'La plata del mercado, el transporte y los recibos. Aquí no se busca rentabilidad, se busca tenerla a la mano.',
+    [['Dónde','Cuenta de ahorros, Nequi, Daviplata'],['Rinde','Casi nada'],['Ojo con','El 4x1000 y las cuotas de manejo']]);
+
+  out += opcion('🛟','Colchón de emergencia','low','Cualquier día',
+    'Tiene que salir el mismo día que la necesites, sin multas y sin perder valor. Nunca en algo que pueda bajar de precio.',
+    [['Dónde','Cuentas de alta rentabilidad de bancos digitales'],
+     ['Rinde hoy','Hasta ~13% E.A. según la entidad'],
+     ['Protegida','Fogafín cubre '+money(REF.fogafin)+' por entidad']]);
+
+  out += opcion('🔒','Meta de 6 a 12 meses','mid','Fecha fija',
+    'Un viaje, el semestre, la cuota inicial de algo. Si sabes la fecha, puedes «amarrar» la plata y ganar más.',
+    [['Dónde','CDT a 180 o 360 días'],
+     ['Rinde hoy','~9% a 13,5% E.A. a 360 días'],
+     ['El costo','No la puedes sacar antes del plazo']]);
+
+  out += opcion('🌱','Largo plazo, 3 años o más','high','Sin afán',
+    'Aquí sí puedes aceptar que suba y baje, porque tienes tiempo de esperar. A cambio, en muchos años suele rendir más.',
+    [['Dónde','Fondos de inversión colectiva (FIC), acciones, ETFs'],
+     ['Rinde','Variable — puede dar pérdidas en el camino'],
+     ['Requisito','Entender en qué estás metida, o asesor certificado']]);
+
+  out += '<div class="card" style="border-color:var(--danger)"><h3 style="color:var(--danger)">🚩 Señales de alarma</h3>'+
+    '<div class="s13" style="line-height:1.65">'+
+    '<p><b>«Rentabilidad fija del 20% mensual».</b> No existe. Si fuera real, los bancos lo harían.</p>'+
+    '<p style="margin-top:8px"><b>Gota a gota.</b> Cobran tasas que superan cualquier cosa legal. Es la forma más rápida de que una deuda pequeña se vuelva impagable.</p>'+
+    '<p style="margin-top:8px"><b>«Tienes que meter a más gente».</b> Eso es pirámide, no inversión.</p>'+
+    '<p style="margin-top:8px"><b>Presión para decidir hoy.</b> Una oportunidad real aguanta que la pienses una semana.</p>'+
+    '<p style="margin-top:8px"><b>No está vigilada por la Superfinanciera.</b> Se puede verificar gratis antes de entregar un peso.</p>'+
+    '</div></div>';
+
+  /* calculadoras */
+  out += '<div class="card"><h3>¿Cuánto ganaría?</h3>'+
+    '<div class="s13 muted">Un monto guardado a una tasa, y cuánto vale de verdad después de la inflación.</div>'+
+    '<label class="f">Monto que voy a guardar</label>'+
+    '<input class="f tnum" id="c1m" inputmode="numeric" value="'+(S._c1m||'1.000.000')+'" oninput="fmtIn(this);calc1()">'+
+    '<label class="f">Tasa que me ofrecen (% E.A.)</label>'+
+    '<input class="f tnum" id="c1t" inputmode="decimal" value="'+(S._c1t||'11')+'" oninput="calc1()">'+
+    '<label class="f">Por cuántos meses</label>'+
+    '<input class="f tnum" id="c1p" inputmode="numeric" value="'+(S._c1p||'12')+'" oninput="calc1()">'+
+    '<div id="c1out" class="mt16"></div></div>';
+
+  out += '<div class="card"><h3>Si guardo todos los meses</h3>'+
+    '<div class="s13 muted">Lo que más construye no es el monto: es la constancia.</div>'+
+    '<label class="f">Guardo cada mes</label>'+
+    '<input class="f tnum" id="c2m" inputmode="numeric" value="'+(S._c2m||(p.sugerido>0?fmtNum(Math.round(p.sugerido/1000)*1000):'200.000'))+'" oninput="fmtIn(this);calc2()">'+
+    '<label class="f">Tasa (% E.A.)</label>'+
+    '<input class="f tnum" id="c2t" inputmode="decimal" value="'+(S._c2t||'11')+'" oninput="calc2()">'+
+    '<label class="f">Durante cuántos años</label>'+
+    '<input class="f tnum" id="c2a" inputmode="numeric" value="'+(S._c2a||'3')+'" oninput="calc2()">'+
+    '<div id="c2out" class="mt16"></div></div>';
+
+  out += '<div class="card"><h3>El 4x1000, explicado</h3>'+
+    '<div class="s13" style="line-height:1.65">Es un impuesto de <b>$4 por cada $1.000</b> que sacas o transfieres — '+
+    '$4.000 por cada millón. En '+REF.fecha.split(' de ')[1]+' estás <b>exenta</b> hasta '+money(REF.gmfExento)+
+    ' al mes en movimientos ('+REF.gmfExentoUVT+' UVT). Por encima de eso, empiezan a cobrarlo.</div>'+
+    '<label class="f">Cuánto muevo al mes (retiros + transferencias)</label>'+
+    '<input class="f tnum" id="c3m" inputmode="numeric" value="'+(S._c3m||'3.000.000')+'" oninput="fmtIn(this);calc3()">'+
+    '<div id="c3out" class="mt16"></div>'+
+    '<div class="s12 faint mt8">Mover la plata de un lado a otro sin necesidad cuesta plata. Menos vueltas, menos impuesto.</div></div>';
+
+  out += '<div class="card flat"><h3>Datos de referencia · '+REF.fecha+'</h3>'+
+    '<div class="kv"><span>Salario mínimo</span><b class="tnum">'+money(REF.smmlv)+'</b></div>'+
+    '<div class="kv"><span>Auxilio de transporte</span><b class="tnum">'+money(REF.auxTransporte)+'</b></div>'+
+    '<div class="kv"><span>Inflación anual (IPC)</span><b class="tnum">'+REF.inflacion.toString().replace('.',',')+'%</b></div>'+
+    '<div class="kv"><span>Tasa del Banco de la República</span><b class="tnum">'+REF.banrep.toString().replace('.',',')+'%</b></div>'+
+    '<div class="kv"><span>UVT '+new Date().getFullYear()+'</span><b class="tnum">'+money(REF.uvt)+'</b></div>'+
+    '<div class="kv"><span>Exento de 4x1000 al mes</span><b class="tnum">'+money(REF.gmfExento)+'</b></div>'+
+    '<div class="kv"><span>Cobertura Fogafín por entidad</span><b class="tnum">'+money(REF.fogafin)+'</b></div>'+
+    '<label class="f">Actualizar la inflación que uso en los cálculos (%)</label>'+
+    '<input class="f tnum" inputmode="decimal" value="'+S.ajustes.inflacion+'" '+
+      'onchange="S.ajustes.inflacion=Math.max(0,+String(this.value).replace(\',\',\'.\')||0);pintarTodo()">'+
+  '</div>';
+
+  out += '<div class="disc"><b>Aviso.</b> Mi Plata es una herramienta educativa y de organización personal. '+
+    'No es asesoría financiera ni de inversión, y no recomienda entidades ni productos específicos. '+
+    'Las tasas y cifras de arriba son referencias públicas de '+REF.fecha+' y cambian todo el tiempo: '+
+    'verifícalas directamente con la entidad antes de decidir, y consulta a un asesor certificado y vigilado por la '+
+    'Superintendencia Financiera para decisiones importantes.</div>';
+
+  document.getElementById('invBox').innerHTML=out;
+  calc1(); calc2(); calc3();
+}
+
+function opcion(e,nm,riesgo,plazo,txt,filas){
+  var tag = riesgo==='low'?'Riesgo bajo':(riesgo==='mid'?'Riesgo medio':'Riesgo alto');
+  return '<div class="opt"><div class="hd"><span class="e">'+e+'</span><span class="nm">'+nm+'</span>'+
+    '<span class="tag '+riesgo+'">'+tag+'</span></div>'+
+    '<p>'+txt+'</p><dl>'+filas.map(function(f){
+      return '<dt>'+f[0]+'</dt><dd>'+f[1]+'</dd>'; }).join('')+'</dl></div>';
+}
+
+function fmtNum(n){ return Math.round(n).toLocaleString('es-CO'); }
+function unfmt(s){ return +String(s).replace(/[^\d]/g,'')||0; }
+function fmtIn(el){
+  var v=unfmt(el.value); var pos=el.value.length-el.selectionStart;
+  el.value = v?fmtNum(v):'';
+  try{ el.selectionStart=el.selectionEnd=Math.max(0,el.value.length-pos); }catch(e){}
+}
+function num(id){ var e=document.getElementById(id); return e?+String(e.value).replace(',','.').replace(/\.(?=\d{3}\b)/g,'')||0:0; }
+
+function calc1(){
+  var m=unfmt((document.getElementById('c1m')||{}).value||0);
+  var t=+String((document.getElementById('c1t')||{}).value||0).replace(',','.')||0;
+  var p=+String((document.getElementById('c1p')||{}).value||0).replace(/[^\d]/g,'')||0;
+  S._c1m=(document.getElementById('c1m')||{}).value; S._c1t=(document.getElementById('c1t')||{}).value; S._c1p=(document.getElementById('c1p')||{}).value;
+  var el=document.getElementById('c1out'); if(!el) return;
+  if(!m||!p){ el.innerHTML='<div class="s13 faint">Llena los campos para ver el resultado.</div>'; return; }
+  var fin = m*Math.pow(1+t/100, p/12);
+  var gana = fin-m;
+  var infl = m*Math.pow(1+S.ajustes.inflacion/100, p/12);
+  var real = fin-infl;
+  el.innerHTML =
+    '<div class="kv"><span>Al final tendrías</span><b class="tnum">'+money(fin)+'</b></div>'+
+    '<div class="kv"><span>Ganancia</span><b class="tnum" style="color:var(--accent)">+'+money(gana)+'</b></div>'+
+    '<div class="kv big"><span>Ganancia real<br><span class="s12 faint" style="font-weight:400">descontando la inflación</span></span>'+
+      '<b class="tnum" style="color:'+(real>=0?'var(--accent)':'var(--out)')+'">'+(real>=0?'+':'−')+money(real)+'</b></div>'+
+    '<div class="s12 faint mt8">'+(real>=0
+      ? 'Tu plata gana más rápido de lo que suben los precios. Bien.'
+      : 'A esa tasa pierdes poder de compra: los precios suben más rápido. Busca al menos '+Math.ceil(S.ajustes.inflacion)+'% E.A.')+
+    '</div>'+
+    '<div class="s12 faint mt8">No incluye retención en la fuente sobre rendimientos ni la cuota de manejo, si aplican.</div>';
+}
+function calc2(){
+  var m=unfmt((document.getElementById('c2m')||{}).value||0);
+  var t=+String((document.getElementById('c2t')||{}).value||0).replace(',','.')||0;
+  var a=+String((document.getElementById('c2a')||{}).value||0).replace(/[^\d]/g,'')||0;
+  S._c2m=(document.getElementById('c2m')||{}).value; S._c2t=(document.getElementById('c2t')||{}).value; S._c2a=(document.getElementById('c2a')||{}).value;
+  var el=document.getElementById('c2out'); if(!el) return;
+  if(!m||!a){ el.innerHTML='<div class="s13 faint">Llena los campos para ver el resultado.</div>'; return; }
+  var n=a*12, i=Math.pow(1+t/100,1/12)-1;
+  var fin = i>0 ? m*((Math.pow(1+i,n)-1)/i) : m*n;
+  var puesto=m*n;
+  el.innerHTML =
+    '<div class="kv"><span>Vas a poner en total</span><b class="tnum">'+money(puesto)+'</b></div>'+
+    '<div class="kv"><span>Intereses ganados</span><b class="tnum" style="color:var(--accent)">+'+money(fin-puesto)+'</b></div>'+
+    '<div class="kv big"><span>Tendrías en '+a+' año'+(a>1?'s':'')+'</span><b class="tnum">'+money(fin)+'</b></div>'+
+    '<div class="s12 faint mt8">'+money(m)+' al mes parecen poco, pero '+money(fin)+' en '+a+' año'+(a>1?'s':'')+' no lo son.</div>';
+}
+function calc3(){
+  var m=unfmt((document.getElementById('c3m')||{}).value||0);
+  S._c3m=(document.getElementById('c3m')||{}).value;
+  var el=document.getElementById('c3out'); if(!el) return;
+  if(!m){ el.innerHTML=''; return; }
+  var gravado=Math.max(0, m-REF.gmfExento);
+  var imp=gravado*0.004;
+  el.innerHTML =
+    '<div class="kv"><span>Exento</span><b class="tnum">'+money(Math.min(m,REF.gmfExento))+'</b></div>'+
+    '<div class="kv"><span>Sobre lo que te cobran</span><b class="tnum">'+money(gravado)+'</b></div>'+
+    '<div class="kv big"><span>4x1000 al mes</span><b class="tnum" style="color:'+(imp>0?'var(--out)':'var(--accent)')+'">'+money(imp)+'</b></div>'+
+    (imp>0 ? '<div class="s12 faint mt8">Son '+money(imp*12)+' al año.</div>'
+           : '<div class="s12 mt8" style="color:var(--accent)">Estás por debajo del tope: no pagas 4x1000. 👌</div>');
+}
+
+/* =========================================================================
+   PANTALLA: MÁS (respaldo y ajustes)
+   ========================================================================= */
+function pintarMas(){
+  var a=S.ajustes;
+  var dias = a.ultimoRespaldo ? Math.floor((Date.now()-new Date(a.ultimoRespaldo))/86400000) : null;
+  var estado = dias===null ? {c:'bad', t:'Nunca has respaldado'}
+             : dias<=7 ? {c:'ok', t:'Respaldado hace '+(dias===0?'menos de un día':dias+' día'+(dias>1?'s':''))}
+             : dias<=21 ? {c:'warn', t:'Último respaldo hace '+dias+' días'}
+             : {c:'bad', t:'Último respaldo hace '+dias+' días'};
+
+  var out='';
+  if(!STORAGE_OK){
+    out += '<div class="banner bad"><span class="e">\u26d4</span><div><b>Sin guardado autom\u00e1tico.</b> '+
+      'Este navegador bloquea el almacenamiento, as\u00ed que Mi Plata no puede recordar nada por su cuenta. '+
+      'Descarga abajo <b>la app con tus datos</b> cada vez que termines, y la pr\u00f3xima vez abre <i>ese</i> archivo.</div></div>';
+  }
+  out += '<div class="card" id="respBox">'+
+    '<h3>Copia de seguridad</h3>'+
+    '<div class="banner '+estado.c+'" style="margin:0 0 14px"><span class="e">'+(estado.c==='ok'?'✅':'🛟')+'</span>'+
+    '<div><b>'+estado.t+'</b><br>Tienes '+S.mov.length+' movimiento'+(S.mov.length===1?'':'s')+' guardado'+(S.mov.length===1?'':'s')+' en este dispositivo.</div></div>'+
+
+    '<div class="s13 muted" style="line-height:1.6;margin-bottom:14px">Tus datos viven <b>solo en este celular</b>. '+
+    'Nadie más los ve — pero si borras los datos del navegador o cambias de teléfono, se van contigo. '+
+    'Por eso: manda una copia a tu WhatsApp de vez en cuando. Es un segundo y te salva.</div>'+
+
+    '<button class="btn" onclick="respaldarCompartir()">📲 Enviarme la copia por WhatsApp</button>'+
+    '<div class="btnrow mt12">'+
+      '<button class="btn ghost" onclick="respaldarArchivo()">💾 Descargar</button>'+
+      '<button class="btn ghost" onclick="respaldarCopiar()">📋 Copiar</button>'+
+    '</div>'+
+
+    '<div class="mt20" style="border-top:1px solid var(--line);padding-top:14px">'+
+    '<div style="font-weight:640;font-size:14.5px">La copia más segura de todas</div>'+
+    '<div class="s13 muted mt8" style="line-height:1.6">Descarga la <b>app entera con tus datos adentro</b>. '+
+    'Guarda ese archivo en Google Drive o mándatelo por WhatsApp: si algún día pierdes el celular, '+
+    'lo abres en cualquier otro y está todo ahí, tal cual.</div>'+
+    '<button class="btn soft mt12" onclick="exportarApp()">📦 Descargar Mi Plata con mis datos</button></div>'+
+  '</div>';
+
+  out += '<div class="card"><h3>Restaurar</h3>'+
+    '<div class="s13 muted">Si estás estrenando celular o perdiste los datos, trae aquí tu copia.</div>'+
+    '<button class="btn ghost mt12" onclick="document.getElementById(\'fileIn\').click()">📂 Abrir archivo de copia</button>'+
+    '<input type="file" id="fileIn" accept=".json,.txt,application/json" style="display:none" onchange="restaurarArchivo(this)">'+
+    '<label class="f">…o pega aquí el texto de la copia</label>'+
+    '<textarea class="f" id="pegaTxt" placeholder="Pega aquí el contenido que te enviaste"></textarea>'+
+    '<button class="btn ghost mt12" onclick="restaurarTexto()">Restaurar desde el texto</button>'+
+    '<div class="s12 faint mt8">Al restaurar se reemplazan los datos que tengas ahora en este dispositivo.</div>'+
+  '</div>';
+
+  out += '<div class="card"><h3>Mis datos</h3>'+
+    '<div class="kv"><span>Movimientos</span><b class="tnum">'+S.mov.length+'</b></div>'+
+    '<div class="kv"><span>Metas</span><b class="tnum">'+S.metas.length+'</b></div>'+
+    '<div class="kv"><span>Deudas</span><b class="tnum">'+S.deudas.length+'</b></div>'+
+    '<div class="kv"><span>Ahorro acumulado</span><b class="tnum">'+money(ahorroTotal())+'</b></div>'+
+    '<div class="kv"><span>Pagos fijos</span><b class="tnum">'+S.fijos.length+'</b></div>'+
+    '<button class="btn ghost mt16" onclick="editarPerfil()">Cambiar mi ingreso esperado</button>'+
+  '</div>';
+
+  out += '<div class="card"><h3>Apariencia</h3>'+
+    '<div class="seg">'+
+      ['auto','light','dark'].map(function(t){
+        var nm={auto:'Automático',light:'Claro',dark:'Oscuro'}[t];
+        return '<button class="'+(a.tema===t?'on':'')+'" onclick="setTema(\''+t+'\')">'+nm+'</button>'; }).join('')+
+    '</div></div>';
+
+  out += '<div class="card"><h3>Cómo usar Mi Plata</h3>'+
+    '<details class="acc"><summary>¿Cada cuánto registro?</summary><div class="c">'+
+    '<p>Lo ideal es <b>en el momento</b>: pagaste el almuerzo, lo metes. Toma cinco segundos.</p>'+
+    '<p>Si no, ponte una alarma a la misma hora cada noche y registra el día completo. Lo que no funciona es «lo hago el domingo»: para el domingo ya no te acuerdas.</p></div></details>'+
+    '<details class="acc"><summary>¿Qué es «guardar» y en qué se diferencia de un gasto?</summary><div class="c">'+
+    '<p>Un <b>gasto</b> es plata que se fue y no vuelve. <b>Guardar</b> es plata que sigue siendo tuya, solo que la sacaste de lo que puedes gastar este mes.</p>'+
+    '<p>Regístralo cuando de verdad la separes: la pasas a otra cuenta, la metes a un CDT, la guardas aparte. Si sigue en la misma cuenta de siempre, tarde o temprano te la gastas.</p></div></details>'+
+    '<details class="acc"><summary>Págate a ti primero</summary><div class="c">'+
+    '<p>El error clásico es ahorrar «lo que sobre» a fin de mes. Nunca sobra.</p>'+
+    '<p>Dale la vuelta: apenas te caiga la plata, separa lo que dice tu plan y vive con el resto. Si tu banco deja programar una transferencia automática el día del pago, mejor todavía — así no depende de tu fuerza de voluntad.</p></div></details>'+
+    '<details class="acc"><summary>Los meses raros: prima y cesantías</summary><div class="c">'+
+    '<p>En junio y diciembre entra plata que <b>no es parte de tu sueldo normal</b>. Registrala con su categoría para que el plan no crea que ganas eso todos los meses.</p>'+
+    '<p>Es la oportunidad más fácil del año para llenar el colchón o matar una deuda de un solo golpe.</p></div></details>'+
+    '<details class="acc"><summary>¿Y si un mes me va mal?</summary><div class="c">'+
+    '<p>Pasa. Un mes malo no borra tres buenos.</p>'+
+    '<p>Lo único que sí hace daño es dejar de registrar cuando las cosas se ponen feas — que es justo cuando más necesitas ver los números.</p></div></details>'+
+  '</div>';
+
+  out += '<div class="card flat"><h3>Zona de riesgo</h3>'+
+    '<div class="s13 muted">Borra todo lo registrado en este dispositivo. No se puede deshacer.</div>'+
+    '<button class="btn ghost mt12" style="color:var(--danger)" onclick="borrarTodo()">Borrar todos mis datos</button></div>';
+
+  out += '<div class="disc">Mi Plata v1 · Funciona sin internet · Tus datos nunca salen de tu dispositivo, '+
+    'excepto en las copias que tú misma decidas enviar.<br><br>'+
+    'Herramienta educativa y de organización personal. No es asesoría financiera ni de inversión.</div>';
+
+  document.getElementById('masBox').innerHTML=out;
+}
+
+/* =========================================================================
+   RESPALDO
+   ========================================================================= */
+function paqueteJSON(){
+  var copia=JSON.parse(JSON.stringify(S));
+  Object.keys(copia).forEach(function(k){ if(k.charAt(0)==='_') delete copia[k]; });
+  copia.exportado=new Date().toISOString();
+  return JSON.stringify(copia);
+}
+function nombreArchivo(ext){
+  var d=new Date();
+  return 'MiPlata-'+d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'.'+ext;
+}
+function marcarRespaldo(){
+  S.ajustes.ultimoRespaldo=new Date().toISOString();
+  S.ajustes.movsDesdeRespaldo=0; guardar(); pintar();
+}
+function bajar(txt, nombre, tipo){
+  try{
+    var b=new Blob([txt],{type:tipo||'application/json'});
+    var u=URL.createObjectURL(b);
+    var a=document.createElement('a'); a.href=u; a.download=nombre;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(u); },1200);
+    return true;
+  }catch(e){ return false; }
+}
+function respaldarArchivo(){
+  if(bajar(paqueteJSON(), nombreArchivo('json'))){ marcarRespaldo(); toast('Copia descargada ✓'); }
+  else toast('No se pudo descargar. Usa «Copiar».');
+}
+function respaldarCompartir(){
+  var txt=paqueteJSON();
+  var hecho=false;
+  try{
+    var f=new File([txt], nombreArchivo('json'), {type:'application/json'});
+    if(navigator.canShare && navigator.canShare({files:[f]})){
+      navigator.share({files:[f], title:'Copia de Mi Plata'})
+        .then(function(){ marcarRespaldo(); toast('Copia enviada ✓'); })
+        .catch(function(){});
+      hecho=true;
+    }
+  }catch(e){}
+  if(!hecho && navigator.share){
+    navigator.share({title:'Copia de Mi Plata', text:txt})
+      .then(function(){ marcarRespaldo(); toast('Copia enviada ✓'); })
+      .catch(function(){});
+    hecho=true;
+  }
+  if(!hecho){
+    respaldarCopiar();
+    toast('Copiado. Pégalo en un chat contigo misma.');
+  }
+}
+function respaldarCopiar(){
+  var txt=paqueteJSON();
+  function ok(){ marcarRespaldo(); toast('Copia en el portapapeles ✓'); }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(ok).catch(function(){ copiarViejo(txt,ok); });
+  }else copiarViejo(txt,ok);
+}
+function copiarViejo(txt,ok){
+  var t=document.createElement('textarea'); t.value=txt;
+  t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t);
+  t.select();
+  try{ document.execCommand('copy'); ok(); }catch(e){ toast('No se pudo copiar'); }
+  document.body.removeChild(t);
+}
+function exportarApp(){
+  var abre='<script id="seed" type="application/json">';
+  var i=HTML_ORIGINAL.indexOf(abre);
+  if(i<0){ toast('No se pudo generar el archivo'); return; }
+  var j=HTML_ORIGINAL.indexOf('<'+'/script>', i);
+  if(j<0){ toast('No se pudo generar el archivo'); return; }
+  var datos=paqueteJSON().replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
+  var html='<!doctype html>\n'+HTML_ORIGINAL.slice(0,i+abre.length)+datos+HTML_ORIGINAL.slice(j);
+  if(bajar(html, nombreArchivo('html'), 'text/html')){
+    marcarRespaldo();
+    toast('Listo. Guárdalo en Drive o mándatelo.');
+  }else toast('No se pudo descargar el archivo');
+}
+function aplicarRestaurado(o){
+  if(!o || Object.prototype.toString.call(o.mov)!=='[object Array]'){ toast('Ese archivo no parece una copia válida'); return; }
+  if(!o.mov.length && !confirm('Esa copia no tiene movimientos. ¿Restaurar de todos modos?')) return;
+  if(S.mov.length && !confirm('Vas a reemplazar '+S.mov.length+' movimiento(s) de este dispositivo por '+o.mov.length+' de la copia. ¿Seguir?')) return;
+  var base=estadoNuevo();
+  S={ v:1, updatedAt:new Date().toISOString(),
+      perfil:Object.assign(base.perfil, o.perfil||{}),
+      mov:o.mov||[], metas:o.metas||[], deudas:o.deudas||[], fijos:o.fijos||[],
+      ajustes:Object.assign(base.ajustes, o.ajustes||{}) };
+  guardar(); aplicarTema(); ir('inicio');
+  toast('Datos restaurados ✓ ('+S.mov.length+' movimientos)');
+}
+function restaurarArchivo(inp){
+  var f=inp.files && inp.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{ aplicarRestaurado(JSON.parse(String(r.result))); }
+    catch(e){ toast('No pude leer ese archivo'); }
+    inp.value='';
+  };
+  r.onerror=function(){ toast('No pude leer ese archivo'); };
+  r.readAsText(f);
+}
+function restaurarTexto(){
+  var t=(document.getElementById('pegaTxt')||{}).value||'';
+  if(!t.trim()){ toast('Pega primero el texto de la copia'); return; }
+  try{ aplicarRestaurado(JSON.parse(t.trim())); }
+  catch(e){ toast('Ese texto no es una copia válida'); }
+}
+function borrarTodo(){
+  if(!confirm('¿Seguro? Se borra todo lo que has registrado en este dispositivo.')) return;
+  if(!confirm('Última confirmación. ¿Tienes una copia guardada? Esto no se puede deshacer.')) return;
+  S=estadoNuevo(); guardar(); ir('inicio'); toast('Todo borrado');
+}
+
+/* =========================================================================
+   SHEETS — agregar / editar
+   ========================================================================= */
+function sheet(titulo, html){
+  document.getElementById('sheetBody').innerHTML =
+    (titulo?'<h2 style="margin-bottom:14px">'+esc(titulo)+'</h2>':'')+html;
+  document.getElementById('sheet').classList.add('on');
+  document.getElementById('scrim').classList.add('on');
+  document.body.style.overflow='hidden';
+}
+function cerrarSheet(){
+  document.getElementById('sheet').classList.remove('on');
+  document.getElementById('scrim').classList.remove('on');
+  document.body.style.overflow='';
+}
+
+var ADD={tipo:'out', monto:'', cat:'mercado', destino:'colchon', fecha:hoyISO(), nota:'', id:null,
+         retiro:false, ref:null, refMes:null};
+
+function abrirAdd(tipo, mov){
+  if(mov){
+    ADD={tipo:mov.tipo, monto:String(Math.abs(mov.monto)), cat:mov.cat, destino:mov.destino||'colchon',
+         fecha:mov.fecha, nota:mov.nota||'', id:mov.id, retiro:mov.monto<0,
+         ref:mov.ref||null, refMes:mov.refMes||null, refNombre:mov.nota||''};
+  }else{
+    ADD={tipo:tipo||'out', monto:'', cat:(tipo==='in'?'salario':'mercado'), destino:'colchon',
+         fecha:hoyISO(), nota:'', id:null, retiro:false, ref:null, refMes:null};
+  }
+  renderAdd();
+}
+function renderAdd(){
+  var v = ADD.monto ? fmtNum(+ADD.monto) : '0';
+  var h='';
+  if(ADD.ref){
+    h += '<div class="banner ok" style="margin-bottom:12px"><span class="e">\ud83d\udcc5</span><div>'+
+      '<b>Pagando: '+esc(ADD.refNombre||'')+'</b><br>Ajusta el monto si pagaste algo distinto.</div></div>';
+  }
+  h += '<div class="seg">'+
+    [['out','Gasto'],['in','Ingreso'],['save','Guardar']].map(function(t){
+      return '<button data-t="'+t[0]+'" class="'+(ADD.tipo===t[0]?'on':'')+'" onclick="cambiarTipo(\''+t[0]+'\')">'+t[1]+'</button>';
+    }).join('')+'</div>';
+
+  h += '<div class="amount"><div class="v tnum'+(ADD.monto?'':' zero')+'">$'+v+'</div></div>';
+
+  h += '<div class="pad">'+
+    [1,2,3,4,5,6,7,8,9].map(function(n){ return '<button onclick="tecla(\''+n+'\')">'+n+'</button>'; }).join('')+
+    '<button class="sec" onclick="tecla(\'000\')">000</button>'+
+    '<button onclick="tecla(\'0\')">0</button>'+
+    '<button class="sec" onclick="tecla(\'del\')">⌫</button>'+
+  '</div>';
+
+  if(ADD.tipo==='save'){
+    var destinos=[{id:'colchon',n:'Colchón',e:'🛟'}].concat(S.metas.map(function(m){ return {id:m.id,n:m.nombre,e:m.emoji||'🎯'}; }));
+    h += '<label class="f">¿A dónde va?</label><div class="catgrid">'+
+      destinos.map(function(d){
+        return '<button class="'+(ADD.destino===d.id?'on':'')+'" onclick="ADD.destino=\''+d.id+'\';renderAdd()">'+
+          '<span class="e">'+d.e+'</span>'+esc(d.n)+'</button>'; }).join('')+
+      '</div>'+
+      '<label class="f" style="display:flex;align-items:center;gap:9px;margin-top:14px">'+
+      '<input type="checkbox" '+(ADD.retiro?'checked':'')+' onchange="ADD.retiro=this.checked" style="width:19px;height:19px;accent-color:var(--accent)">'+
+      '<span style="font-size:13.5px;color:var(--text);font-weight:500">Al contrario: saqué plata de mis ahorros</span></label>';
+  }else{
+    var lista=CATS[ADD.tipo];
+    h += '<label class="f">Categoría</label><div class="catgrid">'+
+      lista.map(function(c){
+        return '<button class="'+(ADD.cat===c.id?'on':'')+'" onclick="ADD.cat=\''+c.id+'\';renderAdd()">'+
+          '<span class="e">'+c.e+'</span>'+esc(c.n)+'</button>'; }).join('')+'</div>';
+  }
+
+  h += '<label class="f">Fecha</label><input class="f" type="date" value="'+ADD.fecha+'" onchange="ADD.fecha=this.value">';
+  h += '<label class="f">Nota (opcional)</label><input class="f" placeholder="Ej: mercado de la quincena" value="'+esc(ADD.nota)+'" oninput="ADD.nota=this.value">';
+
+  h += '<button class="btn mt20" onclick="guardarMov()">'+(ADD.id?'Guardar cambios':'Listo')+'</button>';
+  if(ADD.id) h += '<button class="btn ghost mt12" style="color:var(--danger)" onclick="borrarMov(\''+ADD.id+'\')">Eliminar</button>';
+
+  sheet(ADD.id?'Editar movimiento':null, h);
+}
+function cambiarTipo(t){
+  ADD.tipo=t;
+  /* un ingreso o un ahorro ya no es el pago de esa cuota: se suelta el vinculo */
+  if(t!=='out'){ ADD.ref=null; ADD.refMes=null; ADD.refNombre=''; }
+  if(t==='out' && !CAT_MAP[ADD.cat]) ADD.cat='mercado';
+  if(t==='in' && CATS.in.filter(function(c){return c.id===ADD.cat;}).length===0) ADD.cat='salario';
+  if(t==='out' && CATS.out.filter(function(c){return c.id===ADD.cat;}).length===0) ADD.cat='mercado';
+  renderAdd();
+}
+function tecla(k){
+  if(k==='del') ADD.monto=ADD.monto.slice(0,-1);
+  else if(k==='000'){ if(ADD.monto) ADD.monto=(ADD.monto+'000').slice(0,12); }
+  else ADD.monto=(ADD.monto+k).replace(/^0+/,'').slice(0,12);
+  var el=document.querySelector('.amount .v');
+  if(el){ el.textContent='$'+(ADD.monto?fmtNum(+ADD.monto):'0'); el.classList.toggle('zero',!ADD.monto); }
+}
+function guardarMov(){
+  var m=+ADD.monto||0;
+  if(m<=0){ toast('Escribe un monto'); return; }
+  if(ADD.tipo==='save' && ADD.retiro) m=-m;
+  if(ADD.id){
+    S.mov.forEach(function(x){
+      if(x.id===ADD.id){
+        if(x.ref) ajustarDeuda(x.ref, +(x.ab||0));            /* revierte el abono anterior */
+        x.tipo=ADD.tipo; x.monto=m; x.cat=ADD.cat; x.destino=ADD.destino; x.fecha=ADD.fecha; x.nota=ADD.nota.trim();
+        if(x.ref){ x.ab=abonoDe(x.ref,m); ajustarDeuda(x.ref, -x.ab); }
+      }
+    });
+    toast('Cambios guardados ✓');
+  }else{
+    var nm={id:uid(), tipo:ADD.tipo, monto:m, cat:ADD.cat, destino:ADD.destino,
+            fecha:ADD.fecha, nota:ADD.nota.trim(), creado:new Date().toISOString()};
+    if(ADD.ref){
+      nm.ref=ADD.ref; nm.refMes=ADD.refMes;
+      nm.ab=abonoDe(ADD.ref,m);
+      ajustarDeuda(ADD.ref, -nm.ab);
+    }
+    S.mov.push(nm);
+    S.ajustes.movsDesdeRespaldo=(S.ajustes.movsDesdeRespaldo||0)+1;
+    toast(ADD.ref ? 'Pago registrado ✓'
+        : (ADD.tipo==='in'?'Ingreso registrado ✓':(ADD.tipo==='save'?'¡Bien! Ahorro registrado 🐾':'Gasto registrado ✓')));
+  }
+  cerrarSheet(); pintarTodo();
+}
+function editarMov(id){
+  var m=S.mov.filter(function(x){ return x.id===id; })[0]; if(!m) return;
+  abrirAdd(null,m);
+}
+function borrarMov(id){
+  if(!confirm('¿Eliminar este movimiento?')) return;
+  var vm=S.mov.filter(function(x){ return x.id===id; })[0];
+  if(vm && vm.ref) ajustarDeuda(vm.ref, +(vm.ab||0));
+  S.mov=S.mov.filter(function(x){ return x.id!==id; });
+  cerrarSheet(); pintarTodo(); toast('Eliminado');
+}
+
+/* =========================================================================
+   PAGOS CON FECHA — cuotas de deuda y gastos fijos que vencen
+   ========================================================================= */
+function fechaDe(ym,dia){ return ym+'-'+pad(Math.min(Math.max(1,dia||1), diasEnMes(ym))); }
+function deudaDe(id){ return S.deudas.filter(function(d){ return d.id===id; })[0]; }
+
+/* el movimiento que salda ese compromiso en ese mes, si existe */
+function pagoDe(id,ym){
+  var r=null;
+  S.mov.forEach(function(m){ if(m.ref===id && m.refMes===ym) r=m; });
+  return r;
+}
+
+function compromisos(ym){
+  var hoyD=new Date().getDate(), esteMes=(ym===ymHoy());
+  var out=[];
+  S.deudas.forEach(function(d){
+    if(!(d.cuota>0) || !(d.dia>0)) return;
+    out.push({id:d.id, nombre:d.nombre, monto:d.cuota, dia:d.dia, tipo:'deuda', cat:'deudas'});
+  });
+  S.fijos.forEach(function(f){
+    if(!(f.monto>0) || !(f.dia>0)) return;
+    out.push({id:f.id, nombre:f.nombre, monto:f.monto, dia:f.dia, tipo:'fijo', cat:f.cat||'otros_out'});
+  });
+  out.forEach(function(c){
+    var mv=pagoDe(c.id,ym);
+    c.pagado=!!mv; c.mov=mv;
+    c.fecha=fechaDe(ym,c.dia);
+    c.dias=c.dia-hoyD;
+    if(c.pagado)          c.estado='pagado';
+    else if(ym<ymHoy())   c.estado='vencido';
+    else if(ym>ymHoy())   c.estado='futuro';
+    else if(c.dia<hoyD)   c.estado='vencido';
+    else if(c.dias<=5)    c.estado='proximo';
+    else                  c.estado='pendiente';
+  });
+  out.sort(function(a,b){ return (a.pagado?1:0)-(b.pagado?1:0) || a.dia-b.dia; });
+  return out;
+}
+
+/* ¿me alcanza para lo que viene? */
+function prevision(ym){
+  ym=ym||ymHoy();
+  var lista=compromisos(ym);
+  var pend=lista.filter(function(c){ return !c.pagado; });
+  var porPagar=pend.reduce(function(a,c){ return a+c.monto; },0);
+  var r=resumen(ym);
+  var yaTengo=r.ing-r.gas-r.aho;
+  /* al principio del mes el sueldo aún no ha caído: contarlo evita la falsa alarma */
+  var refIng=S.perfil.ingresoEsperado || base().ing || 0;
+  var porEntrar=Math.max(0, refIng-r.ing);
+  var disponible=yaTengo+porEntrar;
+  var hoyD=new Date().getDate();
+  var prox=pend.length ? pend.slice().sort(function(a,b){ return a.dia-b.dia; })[0] : null;
+  var dias=prox ? Math.max(1, prox.dia-hoyD) : 0;
+  var falta=porPagar-disponible;
+  return {lista:lista, pend:pend, porPagar:porPagar, disponible:disponible, falta:falta,
+          yaTengo:yaTengo, porEntrar:porEntrar,
+          prox:prox, dias:dias, porDia:(falta>0&&dias>0)?falta/dias:0,
+          vencidos:pend.filter(function(c){ return c.estado==='vencido'; })};
+}
+
+/* dónde recortar para llegar: las categorías no esenciales más grandes */
+function dondeRecortar(ym){
+  var r=resumen(ym), top=[];
+  Object.keys(r.porCat).forEach(function(k){
+    var c=CAT_MAP[k]; if(c && !c.ess) top.push({c:c, v:r.porCat[k]});
+  });
+  top.sort(function(a,b){ return b.v-a.v; });
+  return top.slice(0,3);
+}
+
+function compHTML(c, ym){
+  var col = c.pagado ? 'var(--accent)'
+          : c.estado==='vencido' ? 'var(--out)'
+          : c.estado==='proximo' ? 'var(--warn)' : 'var(--muted)';
+  var etq = c.pagado ? 'Pagado'
+          : c.estado==='vencido' ? (ym<ymHoy() ? 'Quedó sin pagar' : (c.dias===0?'Vence hoy':'Venció el '+c.dia))
+          : c.estado==='proximo' ? (c.dias===0?'Vence hoy':'Vence en '+c.dias+' día'+(c.dias>1?'s':''))
+          : 'Vence el '+c.dia;
+  return '<div class="pend'+(c.pagado?' ok':'')+'">'+
+    '<div class="pd"><div class="nm">'+esc(c.nombre)+'</div>'+
+    '<div class="dt" style="color:'+col+'">'+etq+(c.tipo==='deuda'?' · cuota':'')+'</div></div>'+
+    '<div class="pa tnum">'+money(c.monto)+'</div>'+
+    (c.pagado
+      ? '<button class="pb done" onclick="editarMov(\''+c.mov.id+'\')" aria-label="Ver">✓</button>'
+      : '<button class="pb" onclick="pagarCompromiso(\''+c.id+'\',\''+ym+'\')">Pagar</button>')+
+  '</div>';
+}
+
+function pintarProximos(){
+  var box=document.getElementById('proxBox'); if(!box) return;
+  var p=prevision();
+
+  if(!p.lista.length){
+    box.innerHTML='<div class="card"><h3>Pagos con fecha</h3>'+
+      '<div class="s13 muted">El arriendo, la cuota de la tarjeta, los servicios. Agrégalos con su día de '+
+      'vencimiento y Mi Plata te avisa antes, y te dice si te va a alcanzar.</div>'+
+      '<div class="btnrow mt12">'+
+        '<button class="btn ghost sm" onclick="editarFijo()">+ Gasto fijo</button>'+
+        '<button class="btn ghost sm" onclick="editarDeuda()">+ Deuda</button>'+
+      '</div></div>';
+    return;
+  }
+
+  var av='';
+  if(p.porPagar<=0){
+    av='<div class="banner ok"><span class="e">🐾</span><div><b>Ya pagaste todo lo de este mes.</b> '+
+       'Lo que quede es tuyo para gastar o guardar.</div></div>';
+  }else if(p.falta>0){
+    var rec=dondeRecortar(ymHoy());
+    av='<div class="banner bad"><span class="e">⚠️</span><div>'+
+       '<b>Te faltan '+money(p.falta)+' para cubrir lo que debes pagar este mes.</b><br>'+
+       (p.porEntrar>0 ? 'Ya conté los '+money(p.porEntrar)+' que esperas que entren. ' : '')+
+       (p.prox ? 'Lo más próximo es <b>'+esc(p.prox.nombre)+'</b> ('+money(p.prox.monto)+'), que vence '+
+                 (p.prox.estado==='vencido' ? '<b>ya</b>' : (p.dias<=1?'mañana':'en '+p.dias+' días'))+'. ' : '')+
+       (p.porDia>0 ? 'Son <b>'+money(p.porDia)+' por día</b> que tienes que conseguir o dejar de gastar. ' : '')+
+       (rec.length ? '<br>Donde más rápido recortas: '+rec.map(function(x){
+          return x.c.e+' '+esc(x.c.n)+' '+corto(x.v); }).join(' · ') : '')+
+       '</div></div>';
+  }else{
+    av='<div class="banner ok"><span class="e">✅</span><div><b>Te alcanza.</b> Después de pagar '+
+       money(p.porPagar)+' te quedan '+money(-p.falta)+'. '+
+       (p.porEntrar>0
+         ? 'Eso contando los '+money(p.porEntrar)+' que todavía esperas que entren este mes. '
+         : 'Apártalos ya en un <b>Bolsillo</b> de tu app Bancolombia: no suman al saldo disponible, '+
+           'así no te los gastas sin darte cuenta.')+
+       '</div></div>';
+  }
+
+  var pagados=p.lista.filter(function(c){ return c.pagado; })
+                     .reduce(function(a,c){ return a+c.monto; },0);
+  box.innerHTML='<div class="card"><div class="row"><h3 style="margin:0">Lo que viene</h3>'+
+    '<button class="chip" onclick="editarFijo()">+ Pago fijo</button></div>'+
+    '<div class="s13 muted mt8">'+money(p.porPagar+pagados)+' en pagos con fecha este mes'+
+    (pagados>0?' · ya pagaste '+money(pagados):'')+'</div>'+
+    '<div class="mt12">'+av+'</div>'+
+    p.lista.map(function(c){ return compHTML(c, ymHoy()); }).join('')+
+  '</div>';
+}
+
+/* bloque de pendientes dentro de la pantalla Movimientos */
+function pendMesHTML(ym){
+  var c=compromisos(ym).filter(function(x){ return !x.pagado; });
+  if(!c.length) return '';
+  var t=c.reduce(function(a,x){ return a+x.monto; },0);
+  return '<div class="card"><h3>Pendientes de pagar</h3>'+
+    '<div class="s13 muted" style="margin-bottom:2px">'+money(t)+' que todavía no registras en '+nomMes(ym)+'</div>'+
+    c.map(function(x){ return compHTML(x, ym); }).join('')+'</div>';
+}
+
+/* registrar el pago: abre el teclado ya lleno y amarrado al compromiso */
+function pagarCompromiso(id, ym){
+  var c=compromisos(ym).filter(function(x){ return x.id===id; })[0];
+  if(!c) return;
+  ADD={tipo:'out', monto:String(Math.round(c.monto)), cat:c.cat, destino:'colchon',
+       fecha:(ym===ymHoy()?hoyISO():c.fecha), nota:c.nombre, id:null, retiro:false,
+       ref:c.id, refMes:ym, refNombre:c.nombre, refDia:c.dia, refTipo:c.tipo};
+  renderAdd();
+}
+
+/* de la cuota, lo que de verdad baja la deuda (el resto son intereses) */
+function abonoDe(id, monto){
+  var d=deudaDe(id); if(!d) return 0;
+  return Math.max(0, monto-interesMensual(d));
+}
+function ajustarDeuda(id, delta){
+  var d=deudaDe(id); if(!d) return;
+  d.saldo=Math.max(0, (d.saldo||0)+delta);
+}
+
+/* ---- gastos fijos ---- */
+function editarFijo(id){
+  var f = id ? S.fijos.filter(function(x){ return x.id===id; })[0] : null;
+  var cats=CATS.out;
+  var sel = f?f.cat:'arriendo';
+  var h='<label class="f">¿Qué pago es?</label>'+
+    '<input class="f" id="fNom" placeholder="Ej: arriendo" value="'+esc(f?f.nombre:'')+'">'+
+    '<label class="f">¿Cuánto pagas cada mes?</label>'+
+    '<input class="f tnum" id="fMon" inputmode="numeric" placeholder="$0" value="'+(f?fmtNum(f.monto):'')+'" oninput="fmtIn(this)">'+
+    '<label class="f">¿Qué día del mes vence?</label>'+
+    '<input class="f tnum" id="fDia" inputmode="numeric" placeholder="Ej: 5" value="'+(f?f.dia:'')+'">'+
+    '<label class="f">Categoría</label><div class="catgrid" id="fCat">'+
+      cats.map(function(c){
+        return '<button class="'+(sel===c.id?'on':'')+'" data-c="'+c.id+'" onclick="pickCat(this)">'+
+          '<span class="e">'+c.e+'</span>'+esc(c.n)+'</button>'; }).join('')+'</div>'+
+    '<button class="btn mt20" onclick="guardarFijo(\''+(id||'')+'\')">'+(f?'Guardar':'Agregar pago')+'</button>'+
+    (f?'<button class="btn ghost mt12" style="color:var(--danger)" onclick="borrarFijo(\''+id+'\')">Eliminar</button>':'');
+  sheet(f?'Editar pago fijo':'Nuevo pago fijo', h);
+}
+function pickCat(b){
+  var bs=b.parentNode.querySelectorAll('button');
+  for(var i=0;i<bs.length;i++) bs[i].classList.remove('on');
+  b.classList.add('on');
+}
+function guardarFijo(id){
+  var nom=(document.getElementById('fNom').value||'').trim();
+  var mon=unfmt(document.getElementById('fMon').value);
+  var dia=Math.max(0, Math.min(31, parseInt(String(document.getElementById('fDia').value).replace(/[^\d]/g,''),10)||0));
+  var sel=document.querySelector('#fCat button.on');
+  var cat=sel?sel.getAttribute('data-c'):'otros_out';
+  if(!nom){ toast('Ponle un nombre'); return; }
+  if(mon<=0){ toast('¿Cuánto pagas?'); return; }
+  if(!dia){ toast('¿Qué día vence?'); return; }
+  if(id){ S.fijos.forEach(function(f){ if(f.id===id){ f.nombre=nom; f.monto=mon; f.dia=dia; f.cat=cat; } }); }
+  else S.fijos.push({id:uid(), nombre:nom, monto:mon, dia:dia, cat:cat});
+  cerrarSheet(); pintarTodo(); toast('Listo ✓');
+}
+function borrarFijo(id){
+  if(!confirm('¿Eliminar este pago fijo? Los pagos que ya registraste se quedan en tus movimientos.')) return;
+  S.fijos=S.fijos.filter(function(f){ return f.id!==id; });
+  cerrarSheet(); pintarTodo(); toast('Eliminado');
+}
+
+/* ---- metas ---- */
+var EMOJIS=['🎯','✈️','💻','🏠','🎓','🚗','💍','📱','🏖️','🎁','🦷','🐶'];
+function editarMeta(id){
+  var g = id ? S.metas.filter(function(x){ return x.id===id; })[0] : null;
+  var e = g?g.emoji:'🎯';
+  var h='<label class="f">¿Para qué es?</label>'+
+    '<input class="f" id="mNom" placeholder="Ej: viaje a Cartagena" value="'+esc(g?g.nombre:'')+'">'+
+    '<label class="f">¿Cuánto necesitas?</label>'+
+    '<input class="f tnum" id="mObj" inputmode="numeric" placeholder="$0" value="'+(g?fmtNum(g.objetivo):'')+'" oninput="fmtIn(this)">'+
+    '<label class="f">Elige un ícono</label>'+
+    '<div class="catgrid" id="mEmo">'+EMOJIS.map(function(x){
+      return '<button class="'+(x===e?'on':'')+'" data-e="'+x+'" onclick="pickEmoji(this)" style="min-height:48px">'+
+        '<span class="e">'+x+'</span></button>'; }).join('')+'</div>'+
+    '<button class="btn mt20" onclick="guardarMeta(\''+(id||'')+'\')">'+(g?'Guardar':'Crear meta')+'</button>'+
+    (g?'<button class="btn ghost mt12" style="color:var(--danger)" onclick="borrarMeta(\''+id+'\')">Eliminar meta</button>':'');
+  sheet(g?'Editar meta':'Nueva meta', h);
+}
+function pickEmoji(b){
+  var bs=document.querySelectorAll('#mEmo button');
+  for(var i=0;i<bs.length;i++) bs[i].classList.remove('on');
+  b.classList.add('on');
+}
+function guardarMeta(id){
+  var nom=(document.getElementById('mNom').value||'').trim();
+  var obj=unfmt(document.getElementById('mObj').value);
+  var sel=document.querySelector('#mEmo button.on');
+  var emo=sel?sel.dataset.e:'🎯';
+  if(!nom){ toast('Ponle un nombre'); return; }
+  if(obj<=0){ toast('¿Cuánto necesitas?'); return; }
+  if(id){ S.metas.forEach(function(g){ if(g.id===id){ g.nombre=nom; g.objetivo=obj; g.emoji=emo; } }); }
+  else S.metas.push({id:uid(), nombre:nom, objetivo:obj, emoji:emo, creado:new Date().toISOString()});
+  cerrarSheet(); pintarTodo(); toast(id?'Meta actualizada ✓':'Meta creada 🎯');
+}
+function borrarMeta(id){
+  if(!confirm('¿Eliminar la meta? Los ahorros que le hiciste quedan registrados.')) return;
+  S.metas=S.metas.filter(function(g){ return g.id!==id; });
+  cerrarSheet(); pintarTodo(); toast('Meta eliminada');
+}
+
+/* ---- deudas ---- */
+function editarDeuda(id){
+  var d = id ? S.deudas.filter(function(x){ return x.id===id; })[0] : null;
+  var h='<label class="f">¿Qué deuda es?</label>'+
+    '<input class="f" id="dNom" placeholder="Ej: tarjeta Bancolombia" value="'+esc(d?d.nombre:'')+'">'+
+    '<label class="f">¿Cuánto debes hoy?</label>'+
+    '<input class="f tnum" id="dSal" inputmode="numeric" placeholder="$0" value="'+(d?fmtNum(d.saldo):'')+'" oninput="fmtIn(this)">'+
+    '<label class="f">Tasa de interés (% E.A.)</label>'+
+    '<input class="f tnum" id="dTasa" inputmode="decimal" placeholder="Ej: 28" value="'+(d?d.tasa:'')+'">'+
+    '<div class="s12 faint mt8">Aparece en el extracto. Si no la encuentras: las tarjetas de crédito en Colombia suelen estar entre 25% y 30% E.A.; '+
+    'un gota a gota está muchísimo más arriba.</div>'+
+    '<label class="f">Cuota mensual (opcional)</label>'+
+    '<input class="f tnum" id="dCuota" inputmode="numeric" placeholder="$0" value="'+(d&&d.cuota?fmtNum(d.cuota):'')+'" oninput="fmtIn(this)">'+
+    '<label class="f">¿Qué día del mes vence? (opcional)</label>'+
+    '<input class="f tnum" id="dDia" inputmode="numeric" placeholder="Ej: 15" value="'+(d&&d.dia?d.dia:'')+'">'+
+    '<div class="s12 faint mt8">Si llenas estos dos, Mi Plata te avisa antes de que venza y te dice si te alcanza.</div>'+
+    '<button class="btn mt20" onclick="guardarDeuda(\''+(id||'')+'\')">'+(d?'Guardar':'Agregar deuda')+'</button>'+
+    (d?'<button class="btn ghost mt12" style="color:var(--danger)" onclick="borrarDeuda(\''+id+'\')">Ya la pagué / eliminar</button>':'');
+  sheet(d?'Editar deuda':'Nueva deuda', h);
+}
+function guardarDeuda(id){
+  var nom=(document.getElementById('dNom').value||'').trim();
+  var sal=unfmt(document.getElementById('dSal').value);
+  var tasa=+String(document.getElementById('dTasa').value||'').replace(',','.')||0;
+  if(!nom){ toast('Ponle un nombre'); return; }
+  if(sal<=0){ toast('¿Cuánto debes?'); return; }
+  var cuo=unfmt((document.getElementById('dCuota')||{}).value||0);
+  var dia=Math.max(0, Math.min(31, parseInt(String((document.getElementById('dDia')||{}).value||'').replace(/[^\d]/g,''),10)||0));
+  if(id){ S.deudas.forEach(function(x){ if(x.id===id){ x.nombre=nom; x.saldo=sal; x.tasa=tasa; x.cuota=cuo; x.dia=dia; } }); }
+  else S.deudas.push({id:uid(), nombre:nom, saldo:sal, tasa:tasa, cuota:cuo, dia:dia});
+  cerrarSheet(); pintarTodo(); toast('Listo ✓');
+}
+function borrarDeuda(id){
+  S.deudas=S.deudas.filter(function(x){ return x.id!==id; });
+  cerrarSheet(); pintarTodo(); toast('Deuda eliminada 🎉');
+}
+
+/* ---- perfil ---- */
+function editarPerfil(){
+  sheet('Mis datos',
+    '<label class="f">¿Cuánto esperas ganar al mes? (opcional)</label>'+
+    '<input class="f tnum" id="pIng" inputmode="numeric" placeholder="$0" value="'+(S.perfil.ingresoEsperado?fmtNum(S.perfil.ingresoEsperado):'')+'" oninput="fmtIn(this)">'+
+    '<div class="s12 faint mt8">Sirve para calcular tu plan mientras acumulas historial. Después el app usa lo que de verdad entra.</div>'+
+    '<button class="btn mt20" onclick="guardarPerfil()">Guardar</button>');
+}
+function guardarPerfil(){
+  var elIng=document.getElementById('pIng');
+  S.perfil.nombre='Salomé';
+  if(elIng) S.perfil.ingresoEsperado=unfmt(elIng.value);
+  S.perfil.onboarded=true;
+  cerrarSheet(); pintarTodo(); toast('Guardado ✓');
+}
+
+/* ---- onboarding ---- */
+function onboarding(){
+  sheet(null,
+    '<div class="center" style="padding:8px 0 4px">'+
+      '<div class="catstage"><svg class="cat cat-lg" viewBox="0 0 120 120"><use href="#cat-sit"/></svg></div>'+
+      '<h2 style="margin-top:10px">Hola, Salomé</h2>'+
+      '<p class="s14 muted mt8" style="line-height:1.6">Aquí vas a ver, sin adivinar, cuánta plata entra, en qué se va '+
+      'y cuánto puedes guardar de verdad. Sin cuentas, sin internet, sin que nadie más lo vea.</p>'+
+    '</div>'+
+    '<label class="f">¿Cuánto entra al mes, más o menos?</label>'+
+    '<input class="f tnum" id="pIng" inputmode="numeric" placeholder="$0" oninput="fmtIn(this)">'+
+    '<div class="s12 faint mt8">Un estimado basta. Si no sabes, déjalo vacío: el app lo aprende de tus movimientos.</div>'+
+    '<button class="btn mt20" onclick="guardarPerfil()">Empezar</button>'+
+    '<div class="disc center">Herramienta educativa y de organización personal. No es asesoría financiera.</div>');
+}
+
+/* =========================================================================
+   APRENDER — base de consulta con buscador
+   ========================================================================= */
+var CATEG=[
+  {id:'basicos',  n:'Lo básico'},
+  {id:'cuentas',  n:'Bancos y cuentas'},
+  {id:'deudas',   n:'Deudas'},
+  {id:'invertir', n:'Ahorro e inversión'},
+  {id:'trabajo',  n:'Trabajo y leyes'},
+  {id:'habitos',  n:'Hábitos'}
+];
+
+var ARTS=[
+/* ---------------- lo básico ---------------- */
+{id:'empezar', c:'basicos', t:'¿Por dónde empiezo si nunca he controlado mi plata?',
+ k:'empezar comenzar inicio primera vez perdida no se nada',
+ r:'Un mes registrando todo. Nada más. Sin recortar, sin metas.',
+ b:'<p>El error más común es arrancar con reglas duras: «desde hoy no gasto en nada». Eso dura dos semanas.</p>'+
+   '<p>Arranca por <b>mirar</b>. Durante un mes registra todo lo que entra y todo lo que sale, sin juzgarte y sin cambiar nada. Al final vas a ver tres cosas que hoy no sabes: cuánto ganas de verdad, en qué se te va y cuánto podrías guardar sin sufrir.</p>'+
+   '<p>Con eso ya tienes un plan real, hecho con tus números y no con los de un video de internet.</p>'+
+   '<div class="tip"><b>Meta del primer mes:</b> no ahorrar. Solo registrar sin faltar días.</div>'},
+
+{id:'no-alcanza', c:'basicos', t:'No me alcanza la plata a fin de mes',
+ k:'no alcanza no me alcanza fin de mes falta plata deficit hueco ajustado quincena '+
+   'no llego no rinde estoy ahogada endeudada cada mes',
+ r:'Primero medir el hueco exacto. Después atacar los gastos grandes, no los pequeños.',
+ b:'<p>Es la situación más común y la que más culpa genera. Pero la culpa no arregla nada y el número sí, así que empecemos por ahí.</p>'+
+   '<p><b>Paso 1: mide el hueco.</b> Cuánto entra menos cuánto sale. Necesitas la cifra exacta, no la sensación. '+
+   'Mi Plata te la calcula sola apenas registres un mes.</p>'+
+   '<p><b>Paso 2: ataca lo grande.</b> Hay una trampa clásica aquí: dejar el café y sentir que hiciste algo. '+
+   'Si te faltan <span class=\"num\">$400.000</span> al mes, no vas a cerrar eso con cafés. Los únicos gastos que mueven la aguja son los grandes: '+
+   'arriendo (compartir, negociar, mudarte), transporte, y las cuotas de deuda.</p>'+
+   '<p><b>Paso 3: si ya recortaste todo lo posible</b>, el problema no es de gasto sino de ingreso. '+
+   'Es una conclusión incómoda pero útil, porque cambia dónde pones tu energía: pedir un aumento, buscar otro trabajo, '+
+   'un ingreso extra los fines de semana.</p>'+
+   '<div class=\"alerta\"><b>Lo que hay que evitar:</b> tapar el hueco con tarjeta de crédito o con un gota a gota. '+
+   'Eso no lo cierra, lo agranda — el mes siguiente te falta lo mismo más la cuota.</div>'+
+   '<div class=\"tip\">Mientras cierras el hueco, no te exijas ahorrar. Llegar a cero ya es ganar.</div>',
+ ir:'plan', irt:'Ver mi hueco exacto'},
+
+{id:'presupuesto', c:'basicos', t:'¿Qué es un presupuesto y para qué sirve?',
+ k:'presupuesto planear plan mensual organizar',
+ r:'Decidir en qué se va tu plata antes de que se vaya sola.',
+ b:'<p>Un presupuesto no es una lista de prohibiciones. Es decidir <b>por adelantado</b> a dónde va cada peso, en vez de llegar a fin de mes preguntándote en qué se fue.</p>'+
+   '<p>La diferencia práctica: sin presupuesto, ahorras lo que sobre — y nunca sobra. Con presupuesto, el ahorro es un gasto más, y de los primeros.</p>'+
+   '<p>No tiene que ser perfecto. Uno que cumples al 70% vale mucho más que uno perfecto que abandonas.</p>'},
+
+{id:'colchon', c:'basicos', t:'¿Qué es el colchón de emergencia y cuánto necesito?',
+ k:'colchon fondo emergencia imprevisto urgencia respaldo ahorro seguridad',
+ r:'Plata guardada solo para imprevistos. Entre 3 y 6 meses de tus gastos indispensables.',
+ b:'<p>Es plata separada que existe con un solo propósito: que un problema no se convierta en una deuda.</p>'+
+   '<p>Se arma por escalones:</p>'+
+   '<ul><li><b>Primer escalón:</b> un millón. Cubre el celular dañado, la urgencia del gato, el bus que se varó.</li>'+
+   '<li><b>Segundo escalón:</b> 3 meses de tus gastos indispensables (arriendo, mercado, servicios, transporte, salud).</li>'+
+   '<li><b>Tercer escalón:</b> 6 meses, si tus ingresos son variables o inestables.</li></ul>'+
+   '<p>Tiene que estar donde puedas sacarla el mismo día, sin multa. Una cuenta de alta rentabilidad sirve. Un CDT no, porque queda amarrada.</p>'+
+   '<div class="alerta"><b>No es para:</b> un viaje, un mercado grande ni un antojo en descuento. Si lo usas para eso, no es colchón.</div>'},
+
+{id:'cuanto-ahorrar', c:'basicos', t:'¿Cuánto debería ahorrar cada mes?',
+ k:'cuanto ahorrar porcentaje meta guardar 20 por ciento',
+ r:'La referencia es 20% de lo que ganas. Lo importante es que sea constante, no que sea alto.',
+ b:'<p>La cifra que suele repetirse es el <b>20% de tus ingresos</b>. Es una buena meta, pero es solo eso: una meta.</p>'+
+   '<p>Si tus gastos indispensables ya se llevan el 70%, ahorrar el 20% no es disciplina, es imposible. En ese caso guarda lo que de verdad puedas — así sea el 5% — y súbelo un punto cada mes que puedas.</p>'+
+   '<p><b>Guardar <span class="num">$150.000</span> todos los meses le gana a guardar <span class="num">$600.000</span> un mes y cero los otros tres.</b> La constancia construye el hábito; el monto solo construye el saldo.</p>'+
+   '<div class="tip">Mi Plata calcula tu número real: compara tu meta con lo que de verdad te sobra y te muestra el que sí puedes sostener.</div>',
+ ir:'plan', irt:'Ver mi número en el Plan'},
+
+{id:'503020', c:'basicos', t:'La regla 50/30/20: ¿sirve en Colombia?',
+ k:'50 30 20 regla reparto porcentajes distribuir',
+ r:'Sirve como brújula, no como ley. En ciudades caras el arriendo solo ya rompe el 50%.',
+ b:'<p>La regla dice repartir así lo que ganas:</p>'+
+   '<ul><li><b>50% en lo indispensable:</b> arriendo, mercado, servicios, transporte, salud.</li>'+
+   '<li><b>30% en gustos:</b> salidas, ropa, antojos, suscripciones.</li>'+
+   '<li><b>20% en ahorro y en pagar deudas.</b></li></ul>'+
+   '<p>Es útil para darte cuenta de dónde estás desbalanceada. Pero en Bogotá, Medellín o Cali un arriendo decente puede llevarse el 40% solo.</p>'+
+   '<p>Si tu «indispensable» está en 70%, la conclusión no es que fracasaste: es que tienes dos caminos posibles — bajar un gasto grande (el arriendo suele ser el único que mueve la aguja) o subir ingresos. Recortar el café no cierra una brecha de esas.</p>'},
+
+{id:'pagarte-primero', c:'basicos', t:'«Págate a ti primera»: qué significa',
+ k:'pagarme primero automatico transferencia ahorro sobra fin de mes',
+ r:'Separa el ahorro el día que te pagan, no con lo que sobre al final.',
+ b:'<p>Si ahorras «lo que sobre», nunca sobra. No es falta de carácter: el gasto siempre se estira hasta llenar lo que hay disponible.</p>'+
+   '<p>Dale la vuelta. El día que te cae la plata, lo primero que sale es tu ahorro — a otra cuenta, a otro banco, a donde no lo veas junto al resto. Después vives con lo que queda.</p>'+
+   '<p>Si tu banco permite programar una transferencia automática para el día del pago, actívala. Así el ahorro deja de depender de tu fuerza de voluntad un día específico del mes.</p>'},
+
+{id:'inflacion', c:'basicos', t:'¿Qué es la inflación y por qué me importa?',
+ k:'inflacion ipc precios suben poder adquisitivo dane carestia',
+ r:'Los precios suben con el tiempo. Plata quieta pierde valor aunque el número no cambie.',
+ b:'<p>La inflación es cuánto suben los precios en un año. En Colombia la mide el DANE con el IPC, y en 2026 ha estado alrededor del <span class="num">6%</span> anual.</p>'+
+   '<p>Qué significa en la práctica: si guardas <span class="num">$1.000.000</span> debajo del colchón durante un año, sigues teniendo un millón — pero compra como <span class="num">$940.000</span> compraban hace un año. Perdiste sin que nada «pasara».</p>'+
+   '<p>Por eso la regla: <b>si tu plata rinde menos que la inflación, estás perdiendo poder de compra.</b> Una cuenta de ahorros común que paga casi 0% te hace perder cada año.</p>',
+ ir:'inv', irt:'Ver la calculadora de rentabilidad real'},
+
+{id:'esencial', c:'basicos', t:'Gasto indispensable vs gusto: cómo separarlos',
+ k:'esencial indispensable gusto necesidad deseo categorias recortar',
+ r:'Indispensable es lo que no puedes dejar de pagar este mes sin consecuencias reales.',
+ b:'<p>La prueba: si dejas de pagarlo este mes, ¿pasa algo grave? El arriendo, sí. Netflix, no.</p>'+
+   '<p><b>Indispensable:</b> arriendo, mercado, servicios, transporte para trabajar, salud, celular básico, educación, cuota mínima de deudas.</p>'+
+   '<p><b>Gusto:</b> comer fuera, salidas, ropa que no necesitas hoy, suscripciones, antojos.</p>'+
+   '<p>Esto no es para hacerte sentir mal por los gustos — los gustos son parte de una vida normal. Es para saber <b>cuál es tu piso</b>: el número mínimo con el que sobrevives un mes. Ese número define el tamaño de tu colchón.</p>'},
+
+/* ---------------- bancos y cuentas ---------------- */
+{id:'ahorros-corriente', c:'cuentas', t:'Cuenta de ahorros vs cuenta corriente',
+ k:'cuenta ahorros corriente diferencia banco abrir',
+ r:'Para una persona natural, casi siempre la de ahorros. La corriente es más de empresas.',
+ b:'<p>La <b>cuenta de ahorros</b> es la normal: guardas, retiras, y en algunas te pagan intereses.</p>'+
+   '<p>La <b>cuenta corriente</b> está pensada para empresas y para quien maneja cheques o necesita sobregiro (gastar más de lo que tiene, con intereses). Casi nunca paga intereses y suele costar más.</p>'+
+   '<p>Si eres persona natural y no manejas cheques, la de ahorros te sirve. Lo que sí vale la pena comparar entre bancos es la cuota de manejo y la tasa que pagan.</p>'},
+
+{id:'4x1000', c:'cuentas', t:'¿Qué es el 4x1000 y cómo evito pagarlo?',
+ k:'4x1000 cuatro por mil gmf gravamen impuesto retiro transferencia exento',
+ r:'$4 de impuesto por cada $1.000 que sacas. Estás exenta hasta cierto monto al mes.',
+ b:'<p>El GMF, conocido como 4x1000, cobra <b><span class="num">$4</span> por cada <span class="num">$1.000</span></b> que retiras o transfieres. Son <span class="num">$4.000</span> por cada millón que muevas.</p>'+
+   '<p>La buena noticia: hay un <b>monto exento</b>. En 2026 son 350 UVT al mes, es decir cerca de <span class="num">$18.330.900</span> en movimientos mensuales. Por debajo de eso no pagas.</p>'+
+   '<p>Desde finales de 2024 el beneficio aplica sumando los movimientos de tus cuentas, sin que tengas que escoger y marcar una sola. Aun así vale la pena confirmar con tu banco cómo lo están aplicando en tu caso.</p>'+
+   '<div class="tip"><b>Lo práctico:</b> menos vueltas, menos impuesto. Pasar la plata de un lado a otro «por si acaso» cuesta plata de verdad.</div>',
+ ir:'inv', irt:'Calcular cuánto pago de 4x1000'},
+
+{id:'cuota-manejo', c:'cuentas', t:'La cuota de manejo: el gasto que no ves',
+ k:'cuota manejo mensual tarjeta debito costo banco cobro',
+ r:'Un cobro fijo mensual. Hay cuentas que no la cobran — cambiarse es gratis.',
+ b:'<p>Muchos bancos cobran una cuota mensual por mantener la cuenta o la tarjeta débito. Puede parecer poco al mes, pero <span class="num">$15.000</span> mensuales son <span class="num">$180.000</span> al año por no hacer nada.</p>'+
+   '<p>Hoy varias entidades no cobran cuota de manejo, sobre todo las digitales. Revisa tu extracto y busca la línea; si te la están cobrando, tienes dos opciones: pedir que te la exoneren (a veces la quitan solo con pedirlo) o abrir cuenta donde no la cobren.</p>'},
+
+{id:'tasa-ea', c:'cuentas', t:'¿Qué quiere decir «E.A.» en una tasa?',
+ k:'ea efectiva anual tasa interes que significa porcentaje',
+ r:'Efectivo Anual: lo que de verdad rinde o cuesta en un año, ya con los intereses sobre intereses.',
+ b:'<p>E.A. significa <b>Efectivo Anual</b>. Es la forma honesta de expresar una tasa, porque ya incluye el efecto de los intereses que se van sumando durante el año.</p>'+
+   '<p>Cuando un banco dice «10% E.A.», significa que <span class="num">$1.000.000</span> se convierten en <span class="num">$1.100.000</span> en un año.</p>'+
+   '<p>Sirve para comparar peras con peras: dos productos con tasa E.A. se pueden comparar directamente. Si te dan la tasa de otra forma, ojo con el punto siguiente.</p>'},
+
+{id:'ea-vs-mv', c:'cuentas', t:'E.A. vs M.V.: la trampa al comparar tasas',
+ k:'ea mv mes vencido nominal comparar tasas trampa engano credito',
+ r:'2% mes vencido no es 24% anual: es casi 27% E.A. Siempre pide la tasa en E.A.',
+ b:'<p>Es la confusión que más plata cuesta en Colombia.</p>'+
+   '<p>Cuando te dicen «<b>2% M.V.</b>» (mes vencido), tu cabeza multiplica por 12 y calcula 24% al año. Pero como cada mes cobran interés sobre lo que ya debes con intereses, el resultado real es <b>cerca de 26,8% E.A.</b></p>'+
+   '<p>Casi tres puntos de diferencia que aparecen de la nada. En un crédito grande, eso es mucha plata.</p>'+
+   '<div class="tip"><b>Qué hacer:</b> pide siempre la tasa <b>en E.A.</b>, por escrito. Es tu derecho y no tienen por qué negarse. Si solo te dan la mensual, no compares hasta convertirla.</div>'},
+
+{id:'compuesto', c:'cuentas', t:'Interés compuesto: por qué el tiempo importa tanto',
+ k:'interes compuesto bola de nieve tiempo crecer capitalizacion',
+ r:'Los intereses generan intereses. Es lento al principio y muy rápido después.',
+ b:'<p>Interés simple es ganar sobre lo que pusiste. Interés compuesto es ganar también sobre lo que ya ganaste.</p>'+
+   '<p>Un ejemplo con números reales: guardar <span class="num">$200.000</span> al mes al 11% E.A.</p>'+
+   '<ul><li>En 3 años pones <span class="num">$7.200.000</span> y tienes cerca de <span class="num">$8.500.000</span>.</li>'+
+   '<li>En 10 años pones <span class="num">$24.000.000</span> y tienes cerca de <span class="num">$42.000.000</span>.</li></ul>'+
+   '<p>Fíjate que la ganancia no crece al doble: crece mucho más. Por eso empezar temprano con poco le gana a empezar tarde con mucho.</p>'+
+   '<div class="alerta"><b>Funciona igual en contra.</b> Una deuda de tarjeta sin pagar crece con la misma fuerza, pero en tu contra.</div>',
+ ir:'inv', irt:'Probar con mis números'},
+
+{id:'fogafin', c:'cuentas', t:'¿Y si el banco quiebra? Fogafín',
+ k:'fogafin seguro deposito quiebra banco proteccion garantia 50 millones',
+ r:'Tus ahorros están asegurados hasta $50 millones por entidad.',
+ b:'<p>Fogafín es el fondo que asegura los depósitos en Colombia. Si una entidad inscrita entra en liquidación, te devuelve lo que tenías hasta <b><span class="num">$50.000.000</span> por persona y por entidad</b>.</p>'+
+   '<p>No tienes que contratarlo ni pagarlo: es automático al abrir el producto.</p>'+
+   '<p>Por eso, si llegas a tener más de 50 millones ahorrados, conviene repartirlos en dos entidades distintas: cada una cubre su propio tope.</p>'+
+   '<div class="tip">Antes de abrir cuenta en una entidad que no conoces, confirma que esté inscrita en Fogafín y vigilada por la Superfinanciera.</div>'},
+
+{id:'neobancos', c:'cuentas', t:'Los bancos digitales, ¿son seguros?',
+ k:'neobanco banco digital nu lulo uala pibank seguro confiable app',
+ r:'Si están vigilados por la Superfinanciera y cubiertos por Fogafín, sí.',
+ b:'<p>Que no tengan oficina física no los hace menos seguros. Lo que importa son dos cosas, y las puedes verificar gratis:</p>'+
+   '<ul><li>Que estén <b>vigilados por la Superintendencia Financiera</b>.</li>'+
+   '<li>Que sus depósitos estén <b>cubiertos por Fogafín</b>.</li></ul>'+
+   '<p>Si cumplen las dos, tu plata tiene la misma protección legal que en un banco tradicional. En 2026 varias de estas entidades pagan tasas mucho mejores en la cuenta de ahorros que la banca de siempre.</p>'+
+   '<p>Lo que sí cambia: la atención es por chat o app, no por ventanilla. Si necesitas hablar con alguien en persona, tenlo en cuenta.</p>'+
+   '<div class="alerta">Cuidado con confundir un banco digital vigilado con una «app de inversión» que promete rentabilidades altas y no está vigilada por nadie. No es lo mismo.</div>'},
+
+{id:'bancolombia', c:'cuentas', t:'Tu cuenta Bancolombia: qué revisar',
+ k:'bancolombia bolsillos cuota manejo plan cero bronce plata oro app mi bancolombia sucursal virtual '+
+   'cdt bancolombia rendimiento cuenta ahorros mi banco',
+ r:'Usa los Bolsillos para separar plata, revisa qué plan de cuota de manejo tienes y compara antes de abrir un CDT.',
+ b:'<p>Cuatro cosas concretas que puedes hacer hoy desde la app.</p>'+
+
+   '<p><b>1. Bolsillos: tu mejor herramienta y es gratis.</b> Dejan separar plata dentro de tu misma cuenta de ahorros. '+
+   'Lo importante es que <b>lo que metes a un Bolsillo deja de sumar a tu saldo disponible</b>, así que no te lo gastas sin darte cuenta. '+
+   'Puedes crear uno para el colchón de emergencia, otro para los pagos del mes y otro por cada meta. '+
+   'También se puede programar un traslado automático el día que te pagan — eso es «págate a ti primera» en piloto automático.</p>'+
+
+   '<p><b>2. Revisa qué plan de cuota de manejo tienes.</b> Bancolombia maneja planes con costos distintos: '+
+   'Cero (<span class="num">$0</span>), Bronce (<span class="num">$5.990</span>), Plata (<span class="num">$8.990</span>) y '+
+   'Oro (<span class="num">$14.190</span>) al mes. Si usas poco efectivo y te mueves por la app, el plan más barato puede alcanzarte de sobra. '+
+   'El plan se cambia desde la misma app.</p>'+
+   '<div class="tip">Pasar de Oro a Cero son unos <span class="num">$170.000</span> al año que te quedas tú.</div>'+
+
+   '<p><b>3. La cuenta de ahorros casi no paga intereses.</b> Está alrededor de <span class="num">0,05%</span> a '+
+   '<span class="num">0,5% E.A.</span>, frente a una inflación cercana al <span class="num">6%</span>. '+
+   'Para el día a día eso está bien — la cuenta es para mover plata, no para hacerla crecer. '+
+   'Pero si vas a dejar quieto el colchón varios meses ahí, vale la pena saber que está perdiendo poder de compra.</p>'+
+
+   '<p><b>4. Si vas a abrir un CDT, cotiza primero.</b> En septiembre de 2026 las tasas de CDT de Bancolombia han estado '+
+   'entre las más bajas del mercado (del orden de <span class="num">8,1%</span> a <span class="num">9%</span> E.A. según el plazo), '+
+   'mientras otras entidades vigiladas llegaban a <span class="num">11%</span> o más. '+
+   'No significa que Bancolombia esté mal: significa que en este producto conviene comparar antes de amarrar la plata.</p>'+
+
+   '<div class="tip"><b>Además:</b> confirma en la app o en una sucursal que tu cuenta esté marcada como '+
+   '<b>exenta del 4x1000</b>. Y tranquila con la seguridad: Bancolombia está vigilada por la Superfinanciera '+
+   'y cubierta por Fogafín hasta <span class="num">$50 millones</span>.</div>'+
+
+   '<div class="alerta">Las tarifas y tasas cambian. Estas son de referencia a septiembre de 2026: '+
+   'confírmalas en la app antes de decidir algo.</div>',
+ ir:'plan', irt:'Ver mi colchón'},
+
+{id:'nequi', c:'cuentas', t:'Nequi y Daviplata: ¿sirven para ahorrar?',
+ k:'nequi daviplata billetera bolsillo ahorro app celular',
+ r:'Sirven para el día a día. Para ahorrar de verdad, casi no pagan intereses.',
+ b:'<p>Son excelentes para lo que fueron hechas: mover plata rápido, pagar, recibir, dividir cuentas.</p>'+
+   '<p>Para ahorrar tienen dos problemas. El primero es que rinden muy poco o nada, así que la inflación se te come el saldo. El segundo es más humano: la plata está en la misma app con la que pagas todo, así que tarde o temprano se gasta.</p>'+
+   '<p>Sirve usar sus «bolsillos» o «metas» para separar visualmente montos pequeños. Pero el colchón y el ahorro de verdad conviene tenerlos en otra entidad que pague intereses y que no abras diez veces al día.</p>'},
+
+/* ---------------- deudas ---------------- */
+{id:'tarjeta', c:'deudas', t:'Cómo funciona de verdad una tarjeta de crédito',
+ k:'tarjeta credito como funciona cupo diferir cuotas intereses',
+ r:'No es plata tuya: es un préstamo caro. Si pagas todo antes del corte, no cobra intereses.',
+ b:'<p>La tarjeta no es una extensión de tu sueldo. Es un préstamo con una de las tasas más altas del mercado.</p>'+
+   '<p>La clave está en <b>diferir o no</b>. Si pagas el total facturado antes de la fecha límite, en general no pagas intereses: usaste plata prestada gratis. Si difieres a cuotas, empiezan a correr intereses sobre el saldo.</p>'+
+   '<p>Ahí está la trampa: difieres una compra a 12 cuotas, y el mes siguiente vuelves a usar la tarjeta. Se van acumulando cuotas encima de cuotas hasta que la factura mensual ya no la reconoces.</p>'+
+   '<div class="tip"><b>Regla simple:</b> si no puedes pagarlo completo el mes que viene, no lo compres con tarjeta.</div>'},
+
+{id:'pago-minimo', c:'deudas', t:'Por qué el pago mínimo es una trampa',
+ k:'pago minimo tarjeta trampa nunca termino deuda eterna',
+ r:'Cubre casi solo intereses. Pagando el mínimo la deuda puede durar años.',
+ b:'<p>El pago mínimo está calculado para que el banco no te reporte en mora, no para que salgas de la deuda.</p>'+
+   '<p>Buena parte de ese pago se va en intereses y muy poco toca lo que realmente debes. Por eso pagas juiciosa cada mes y el saldo casi no baja: la sensación de estar corriendo sin avanzar es literal.</p>'+
+   '<p>Con una deuda de tarjeta a tasas colombianas, pagar solo el mínimo puede estirar la deuda por años y hacerte pagar mucho más de lo que compraste.</p>'+
+   '<div class="alerta"><b>Qué hacer:</b> paga siempre <b>más</b> que el mínimo, aunque sea un poco. Todo lo que va por encima del mínimo ataca la deuda directamente.</div>'},
+
+{id:'usura', c:'deudas', t:'¿Qué es la tasa de usura?',
+ k:'usura tasa maxima legal superfinanciera limite interes',
+ r:'El máximo legal que te pueden cobrar. Por encima de eso es delito.',
+ b:'<p>Es el techo legal de intereses en Colombia. La Superintendencia Financiera la certifica periódicamente, y cobrar por encima es un delito.</p>'+
+   '<p>Con la tasa del Banco de la República en <span class="num">12%</span> durante 2026, las tarjetas de crédito y los créditos de consumo se han movido en rangos altos, del orden del <span class="num">25%</span> al <span class="num">30% E.A.</span> Consulta la cifra vigente en la página de la Superfinanciera antes de firmar algo.</p>'+
+   '<p>Para qué te sirve saberlo: es tu punto de referencia. <b>Ninguna inversión legal y segura te va a pagar lo que te cuesta una deuda a esas tasas.</b> Por eso pagar esa deuda rinde más que cualquier inversión.</p>'},
+
+{id:'gota', c:'deudas', t:'Gota a gota: por qué nunca',
+ k:'gota a gota prestamo diario informal paga diario usurero cobradiario',
+ r:'Tasas muy por encima de lo legal, cobro violento y una deuda que no termina.',
+ b:'<p>El gota a gota se ve fácil: sin papeles, sin consulta en centrales de riesgo, plata el mismo día. Ese es exactamente el problema.</p>'+
+   '<p>Las tasas están muy por encima del límite legal. Una deuda pequeña se multiplica en semanas, y el cobro suele venir con amenazas y presión sobre la familia.</p>'+
+   '<p>Casi cualquier alternativa es mejor: un adelanto de nómina, un fondo de empleados, una cooperativa, un crédito de bajo monto en una entidad vigilada, o pedirle a alguien de confianza dejando por escrito cómo se paga.</p>'+
+   '<div class="alerta">Si ya estás en una de estas, no es cuestión de estrategia financiera: busca ayuda. Puedes denunciar de forma anónima ante la Policía o la Fiscalía.</div>'},
+
+{id:'avalancha', c:'deudas', t:'Si tengo varias deudas, ¿cuál pago primero?',
+ k:'avalancha bola de nieve orden pagar deudas cual primero estrategia',
+ r:'Por matemática, la de tasa más alta. Por motivación, la más pequeña.',
+ b:'<p>Hay dos métodos y los dos funcionan:</p>'+
+   '<p><b>Avalancha.</b> Pagas primero la de <b>mayor tasa de interés</b>, mientras haces el mínimo en las demás. Es la que menos intereses te hace pagar en total. Es la matemáticamente correcta.</p>'+
+   '<p><b>Bola de nieve.</b> Pagas primero la <b>más pequeña</b>, sin importar la tasa. Cuesta un poco más en intereses, pero tachar una deuda completa da un empujón real de ánimo.</p>'+
+   '<p>Si tienes muchas deudas pequeñas y te sientes ahogada, empieza por bola de nieve para ganar impulso. Si aguantas la espera, la avalancha te ahorra más plata.</p>'+
+   '<div class="tip">Mi Plata ordena tus deudas de mayor a menor tasa y te muestra cuánto te cuesta cada una al mes solo en intereses.</div>',
+ ir:'plan', irt:'Ver mis deudas ordenadas'},
+
+{id:'datacredito', c:'deudas', t:'Datacrédito: qué es y cómo salgo de ahí',
+ k:'datacredito centrales riesgo reporte mora historial credito puntaje transunion',
+ r:'Tu historial de pagos. Pagar es el único camino real, y el reporte negativo se va con el tiempo.',
+ b:'<p>Las centrales de riesgo guardan tu historial de crédito: qué debes, si pagas a tiempo, si te has atrasado. Los bancos lo consultan antes de prestarte.</p>'+
+   '<p>Un reporte negativo no es eterno. La ley de habeas data fija plazos: una vez pagas la obligación, el dato negativo permanece un tiempo limitado y luego debe salir. El tiempo depende de cuánto duraste en mora.</p>'+
+   '<p>Puedes consultar tu reporte <b>gratis</b> — tienes derecho a hacerlo. Desconfía de quien te cobre por «borrarte» de Datacrédito: nadie puede borrar un dato cierto, y quien lo promete está estafándote.</p>'+
+   '<div class="tip">Si el dato reportado está equivocado, puedes reclamar directamente a la central y a la entidad. Están obligadas a responder.</div>'},
+
+{id:'cuotas-sin-interes', c:'deudas', t:'«12 cuotas sin interés»: ¿es cierto?',
+ k:'cuotas sin interes diferido tarjeta compra promocion trampa',
+ r:'A veces sí. Pero comprometes cupo por un año y suele haber precio de contado más barato.',
+ b:'<p>Cuando de verdad es sin interés, no te cobran de más. El problema es otro.</p>'+
+   '<p><b>Compromete tu cupo por 12 meses.</b> Esa cuota va a estar ahí cada mes, pase lo que pase con tu trabajo o tu salud.</p>'+
+   '<p><b>Se acumulan.</b> Tres compras «sin interés» de tres meses distintos y ya tienes tres cuotas fijas comiéndote la quincena.</p>'+
+   '<p><b>Muchas veces hay precio de contado más barato.</b> Pregunta siempre cuánto cuesta pagando de una: la diferencia es el interés escondido.</p>'+
+   '<div class="tip">Prueba honesta: si no tienes la plata hoy para pagarlo completo, no es una compra sin interés — es una deuda.</div>'},
+
+{id:'cuanta-deuda', c:'deudas', t:'¿Cuánta deuda es demasiada?',
+ k:'cuanta deuda limite endeudamiento maximo sobreendeudada capacidad',
+ r:'Si tus cuotas pasan del 30% de lo que ganas, estás en zona de riesgo.',
+ b:'<p>Suma todas las cuotas mensuales de tus deudas y divídelo entre lo que ganas al mes.</p>'+
+   '<ul><li><b>Menos de 20%:</b> manejable.</li>'+
+   '<li><b>Entre 20% y 30%:</b> apretado, no tomes más deuda.</li>'+
+   '<li><b>Más de 30%:</b> zona de riesgo. Cualquier imprevisto te tumba.</li></ul>'+
+   '<p>Hay señales que valen más que el porcentaje: si estás pagando una tarjeta con otra tarjeta, si pagas solo mínimos, o si necesitas prestar para llegar a fin de mes, ya pasaste el límite sin importar la cuenta.</p>'+
+   '<p>En ese punto lo que ayuda no es apretarse más, es hablar con la entidad. Muchas negocian reestructurar la deuda antes de que caigas en mora — después es más difícil.</p>'},
+
+/* ---------------- ahorro e inversión ---------------- */
+{id:'cdt', c:'invertir', t:'¿Qué es un CDT?',
+ k:'cdt certificado deposito termino plazo fijo invertir tasa',
+ r:'Prestas plata al banco por un plazo fijo a cambio de una tasa conocida desde el día uno.',
+ b:'<p>Un CDT es un trato simple: dejas una plata quieta durante un plazo (90, 180, 360 días) y el banco te paga una tasa acordada. Sabes exactamente cuánto vas a recibir y cuándo.</p>'+
+   '<p><b>La ventaja:</b> no hay sorpresas y está cubierto por Fogafín hasta <span class="num">$50 millones</span> por entidad. Es de lo más seguro que hay.</p>'+
+   '<p><b>El costo:</b> no puedes sacar la plata antes. Por eso <b>nunca metas ahí tu colchón de emergencia</b>.</p>'+
+   '<p>En septiembre de 2026 los CDT a 360 días se han movido entre <span class="num">9%</span> y <span class="num">13,5% E.A.</span> según la entidad. La diferencia entre bancos es grande: vale la pena cotizar en tres o cuatro antes de decidir.</p>'+
+   '<div class="tip">Sirve para metas con fecha: un viaje en 8 meses, el semestre, una cuota inicial.</div>'},
+
+{id:'fic', c:'invertir', t:'¿Qué es un FIC (fondo de inversión colectiva)?',
+ k:'fic fondo inversion colectiva fiduciaria portafolio administrado',
+ r:'Un fondo donde muchas personas juntan plata y un gestor profesional la invierte.',
+ b:'<p>En un FIC tu plata se junta con la de otras personas y una sociedad vigilada la invierte en un portafolio: bonos, acciones, deuda, según el tipo de fondo.</p>'+
+   '<p><b>A favor:</b> puedes entrar con montos bajos, hay diversificación desde el primer peso y algunos permiten retirar rápido.</p>'+
+   '<p><b>En contra:</b> la rentabilidad <b>no está garantizada</b> — puede ser negativa. Y cobran comisión de administración, que se descuenta rinda o no rinda.</p>'+
+   '<p>Antes de entrar, pregunta tres cosas: en qué invierte exactamente, cuánto cobra de comisión al año, y en cuántos días te devuelven la plata si la pides.</p>'+
+   '<div class="alerta">Rentabilidades pasadas no garantizan rentabilidades futuras. Que haya dado 12% el año pasado no significa nada sobre el próximo.</div>'},
+
+{id:'real-nominal', c:'invertir', t:'Rentabilidad nominal vs real',
+ k:'rentabilidad real nominal inflacion descontar ganancia verdadera',
+ r:'Nominal es lo que dice el papel. Real es lo que queda después de la inflación.',
+ b:'<p>Si tu plata rinde 8% en un año y la inflación fue 6%, tu ganancia <b>real</b> fue cerca de 2%. Eso es lo que de verdad ganaste en capacidad de compra.</p>'+
+   '<p>Es la única cifra que importa a la hora de comparar. Un 8% con inflación de 6% es peor negocio que un 5% con inflación de 2%.</p>'+
+   '<p>Por eso, con la inflación colombiana rondando el 6% en 2026, cualquier producto que pague menos de eso te está haciendo perder — así el saldo suba.</p>',
+ ir:'inv', irt:'Calcular mi rentabilidad real'},
+
+{id:'riesgo', c:'invertir', t:'¿Qué significa «riesgo» en una inversión?',
+ k:'riesgo perdida volatilidad seguro garantizado diversificar',
+ r:'La posibilidad real de recibir menos de lo que pusiste. Más rentabilidad prometida, más riesgo.',
+ b:'<p>Riesgo no es una palabra decorativa: es la probabilidad de que la inversión valga menos de lo que pusiste, incluso durante años.</p>'+
+   '<p>La relación es inseparable: <b>más rentabilidad posible siempre viene con más riesgo</b>. No existe lo contrario. Si alguien te ofrece alta rentabilidad sin riesgo, o no entiende lo que vende o te está mintiendo.</p>'+
+   '<p>Cómo se maneja:</p>'+
+   '<ul><li><b>Plazo.</b> Solo asume riesgo con plata que no vas a necesitar en varios años.</li>'+
+   '<li><b>Diversificar.</b> No pongas todo en un solo lugar.</li>'+
+   '<li><b>Entender.</b> Si no puedes explicar en qué invertiste, no inviertas ahí.</li></ul>'},
+
+{id:'estafas', c:'invertir', t:'Cómo reconocer una estafa de inversión',
+ k:'estafa piramide fraude ponzi rentabilidad fija garantizada esquema captacion ilegal mensual prometen ofrecen ofreciendo me ofrecieron multiplicar duplicar plata facil ganancia asegurada inversion milagrosa',
+ r:'Rentabilidad fija y alta, presión para decidir ya, y ganar por meter gente.',
+ b:'<p>Las señales se repiten casi siempre igual:</p>'+
+   '<ul><li><b>«Rentabilidad fija del 15% mensual».</b> No existe. Si existiera, los bancos lo harían y nadie trabajaría.</li>'+
+   '<li><b>Ganas por referir gente.</b> Eso es una pirámide: la plata de los nuevos paga a los viejos, hasta que se acaba.</li>'+
+   '<li><b>Presión para decidir hoy.</b> «Solo quedan 3 cupos». Una oportunidad real aguanta que la pienses una semana.</li>'+
+   '<li><b>No está vigilada por la Superfinanciera.</b> Captar plata del público sin autorización es delito en Colombia.</li>'+
+   '<li><b>Testimonios y lujos en redes.</b> Los carros y los fajos de billetes no son estados financieros.</li></ul>'+
+   '<div class="alerta"><b>Antes de entregar un peso:</b> verifica en la página de la Superintendencia Financiera si la entidad está autorizada. Es gratis y toma dos minutos.</div>'},
+
+{id:'superfinanciera', c:'invertir', t:'Cómo verificar si una entidad es legal',
+ k:'superfinanciera verificar vigilada legal autorizada consultar entidad',
+ r:'La Superintendencia Financiera tiene un buscador público y gratuito de entidades vigiladas.',
+ b:'<p>En Colombia, quien capta plata del público tiene que estar autorizado y vigilado por la <b>Superintendencia Financiera</b>. No es opcional.</p>'+
+   '<p>En su página hay un buscador público donde escribes el nombre de la entidad y te dice si está vigilada. También publican listas de entidades no autorizadas que están captando de forma ilegal.</p>'+
+   '<p>Hazlo siempre, incluso si te lo recomendó alguien de confianza. Las pirámides se propagan justamente por recomendación de gente de confianza que todavía no ha perdido su plata.</p>'},
+
+{id:'acciones-dolar', c:'invertir', t:'¿Y las acciones, las criptos y el dólar?',
+ k:'acciones bolsa bvc dolar cripto bitcoin etf trading especular',
+ r:'Solo con plata que puedas dejar quieta años y que puedas perder sin que te afecte.',
+ b:'<p>Estas opciones pueden rendir más en plazos largos, pero suben y bajan fuerte. No son un lugar para el colchón ni para la plata del arriendo.</p>'+
+   '<p>La regla de entrada es dura pero honesta: <b>solo con plata que no vas a necesitar en 3 a 5 años y cuya pérdida no te cambia la vida.</b></p>'+
+   '<p>Y el orden importa. Si todavía tienes deuda de tarjeta al 28%, comprar acciones es matemáticamente absurdo: estarías apostando a ganar más del 28% garantizado, que es justo lo que te ahorrarías pagando la deuda.</p>'+
+   '<div class="alerta">Desconfía del «trading» que se enseña en cursos pagos por redes. El negocio de quien lo vende es el curso, no el trading.</div>'},
+
+/* ---------------- trabajo y leyes ---------------- */
+{id:'smmlv', c:'trabajo', t:'Salario mínimo y auxilio de transporte 2026',
+ k:'salario minimo smmlv auxilio transporte 2026 cuanto es',
+ r:'$1.750.905 de salario y $249.095 de auxilio de transporte.',
+ b:'<p>Para 2026 en Colombia:</p>'+
+   '<ul><li><b>Salario mínimo:</b> <span class="num">$1.750.905</span> al mes.</li>'+
+   '<li><b>Auxilio de transporte:</b> <span class="num">$249.095</span> al mes.</li></ul>'+
+   '<p>El auxilio lo reciben quienes ganan hasta 2 salarios mínimos. Sumados, dan <span class="num">$2.000.000</span> exactos.</p>'+
+   '<p>Ojo con una confusión común: el auxilio de transporte <b>no</b> es salario para todos los efectos, pero <b>sí</b> se incluye para calcular prestaciones como la prima y las cesantías.</p>'},
+
+{id:'prima', c:'trabajo', t:'La prima de servicios: qué es y cuándo llega',
+ k:'prima servicios junio diciembre cuanto me toca calcular pago',
+ r:'Un salario extra al año, repartido en dos pagos: junio y diciembre.',
+ b:'<p>La prima equivale a <b>un mes de salario por año trabajado</b>, y se paga en dos partes: máximo el 30 de junio y máximo el 20 de diciembre.</p>'+
+   '<p>Si no trabajaste el año completo, te pagan la parte proporcional. Para el cálculo se toma el salario más el auxilio de transporte, si lo recibes.</p>'+
+   '<p><b>La decisión importante es qué haces con ella.</b> Es plata que no es parte de tu presupuesto normal, así que es la oportunidad más fácil del año para llenar el colchón de un golpe o matar una deuda cara.</p>'+
+   '<div class="tip">Regístrala en Mi Plata con la categoría <b>Prima</b>, no como salario. Así el plan no cree que ganas eso todos los meses.</div>'},
+
+{id:'cesantias', c:'trabajo', t:'Cesantías e intereses de cesantías',
+ k:'cesantias intereses fondo retirar vivienda educacion febrero',
+ r:'Un mes de salario al año guardado en un fondo, más un 12% de intereses que te pagan en enero.',
+ b:'<p>Las cesantías son un <b>mes de salario por año trabajado</b>, pensadas como respaldo si te quedas sin empleo. El empleador las consigna en un fondo antes del 14 de febrero de cada año.</p>'+
+   '<p>Además te deben pagar los <b>intereses de cesantías</b>: el 12% anual sobre ese saldo, que se te paga directamente a ti a más tardar el 31 de enero.</p>'+
+   '<p>Puedes retirarlas antes de quedar desempleada solo para casos específicos: vivienda (comprar, mejorar o pagar crédito) y educación.</p>'+
+   '<div class="alerta">Sacarlas para gastos corrientes es tentador y suele salir caro: es justo la plata que te sostiene si te quedas sin trabajo.</div>'},
+
+{id:'seguridad-social', c:'trabajo', t:'Salud, pensión y ARL: qué te descuentan',
+ k:'eps salud pension arl seguridad social descuentos nomina aportes',
+ r:'Como empleada te descuentan 4% de salud y 4% de pensión. La ARL la paga el empleador.',
+ b:'<p>Si eres empleada con contrato laboral, de tu salario te descuentan:</p>'+
+   '<ul><li><b>Salud:</b> 4% (el empleador aporta 8,5% adicional).</li>'+
+   '<li><b>Pensión:</b> 4% (el empleador aporta 12% adicional).</li></ul>'+
+   '<p>La <b>ARL</b> (riesgos laborales) la paga completa el empleador, no te la pueden descontar.</p>'+
+   '<p>Si ganas más de 4 salarios mínimos, se suma un aporte al Fondo de Solidaridad Pensional.</p>'+
+   '<p>Por eso tu salario «neto» es menor que el que negociaste. Cuando armes tu presupuesto, usa <b>lo que te llega a la cuenta</b>, no el salario bruto del contrato.</p>'},
+
+{id:'independiente', c:'trabajo', t:'Si trabajo por mi cuenta, ¿cómo me organizo?',
+ k:'independiente freelance contratista prestacion servicios cotizar ingresos variables',
+ r:'Cotiza sobre el 40% de tus ingresos y págate un sueldo fijo mensual.',
+ b:'<p>Trabajar independiente tiene dos dificultades: no hay prima ni cesantías, y los ingresos son distintos cada mes.</p>'+
+   '<p><b>Seguridad social.</b> Como independiente te toca a ti. La base de cotización es el 40% de tus ingresos mensuales, y sobre esa base pagas salud y pensión. Sepáralo apenas cobres, como si fuera un impuesto.</p>'+
+   '<p><b>Ingresos variables.</b> El truco que mejor funciona: mira tus últimos 6 meses, toma el mes más flojo y <b>págate ese monto fijo</b> cada mes. Lo que entre por encima va a una cuenta aparte que cubre los meses malos.</p>'+
+   '<p><b>Colchón más grande.</b> Sin estabilidad laboral, apunta a 6 meses de gastos, no a 3.</p>'+
+   '<div class="tip">Guarda también tu propia «prima»: un porcentaje de cada pago para tener a fin de año lo que un empleado recibe por ley.</div>'},
+
+{id:'renta', c:'trabajo', t:'¿Me toca declarar renta?',
+ k:'declarar renta dian impuestos uvt topes obligada declaracion',
+ r:'Depende de topes en UVT: ingresos, patrimonio, compras y consumos con tarjeta.',
+ b:'<p>La UVT es la unidad con la que la DIAN mide todo. En 2026 vale <span class="num">$52.374</span>.</p>'+
+   '<p>Estás obligada a declarar si superas alguno de los topes del año: ingresos brutos, patrimonio bruto, consumos con tarjeta de crédito, compras totales o movimientos en cuentas. Los topes se expresan en UVT y la DIAN los publica cada año.</p>'+
+   '<p>Dos cosas que confunden a mucha gente:</p>'+
+   '<ul><li><b>Declarar no es lo mismo que pagar.</b> Muchas personas declaran y no pagan un peso, o incluso reciben devolución de retenciones.</li>'+
+   '<li><b>Basta con superar un solo tope</b>, no todos.</li></ul>'+
+   '<p>Si crees que puedes estar cerca, consulta los topes vigentes en la página de la DIAN o con un contador. No declarar estando obligada trae sanciones que crecen con el tiempo.</p>'},
+
+/* ---------------- hábitos ---------------- */
+{id:'impulso', c:'habitos', t:'Compras por impulso: cómo frenarlas',
+ k:'impulso antojo comprar compulsivo gastar ansiedad control gasto mucho gastar tanto dejar de gastar controlar gastos frenar no puedo parar shopping tentacion',
+ r:'La regla de las 48 horas: si lo sigues queriendo en dos días, cómpralo.',
+ b:'<p>La compra por impulso casi nunca es por el objeto. Es por el momento: aburrimiento, ansiedad, un mal día, una promoción que activa la sensación de estar perdiéndote algo.</p>'+
+   '<p><b>La regla de las 48 horas.</b> Anótalo en una lista de «lo quiero» y espera dos días. La mayoría de las veces se te pasa. Y si a los dos días lo sigues queriendo, cómpralo tranquila: ya no fue impulso.</p>'+
+   '<p>Otros dos que funcionan:</p>'+
+   '<ul><li><b>Borra las tarjetas guardadas</b> de las apps de compras. Tener que buscar la tarjeta ya frena la mitad de las compras.</li>'+
+   '<li><b>Traduce el precio a tiempo:</b> ¿cuántas horas de tu trabajo cuesta esto? Cambia la perspectiva rápido.</li></ul>'},
+
+{id:'suscripciones', c:'habitos', t:'Suscripciones fantasma: la fuga invisible',
+ k:'suscripciones netflix spotify gym mensualidad cancelar fuga automatico',
+ r:'Pagos automáticos pequeños que no notas y suman más de lo que crees.',
+ b:'<p>El streaming que no ves, el gimnasio al que no vas, la app que probaste una vez, el almacenamiento que se duplicó de precio.</p>'+
+   '<p>Cuatro suscripciones de <span class="num">$25.000</span> son <span class="num">$100.000</span> al mes: <b><span class="num">$1.200.000</span> al año</b> saliendo en silencio.</p>'+
+   '<p><b>Haz la auditoría una vez.</b> Revisa el extracto de los últimos dos meses y marca todos los cobros automáticos. Por cada uno pregúntate: ¿lo usé este mes? Si la respuesta es no dos meses seguidos, cancélalo. Volver a suscribirte toma dos minutos.</p>'+
+   '<div class="tip">Ponte un recordatorio cada seis meses para repetir la revisión. Las suscripciones se acumulan solas.</div>'},
+
+{id:'metas', c:'habitos', t:'Cómo ponerse metas que sí se cumplen',
+ k:'metas objetivos ahorro proposito plan viaje meta especifica',
+ r:'Nombre concreto, monto exacto y fecha. Ahorrar «por si acaso» no funciona.',
+ b:'<p>«Voy a ahorrar más» no es una meta: no se puede saber si la cumpliste. El cerebro no se compromete con algo que no puede ver.</p>'+
+   '<p>Una meta que funciona tiene tres cosas:</p>'+
+   '<ul><li><b>Nombre concreto:</b> «viaje a Cartagena en diciembre», no «viajar».</li>'+
+   '<li><b>Monto exacto:</b> <span class="num">$3.000.000</span>.</li>'+
+   '<li><b>Fecha:</b> diciembre de 2027.</li></ul>'+
+   '<p>Con eso ya tienes el número mensual, que es lo único que de verdad manejas: <span class="num">$3.000.000</span> en 15 meses son <span class="num">$200.000</span> al mes.</p>'+
+   '<p>Y divídela. Una meta de 3 millones asusta; cinco escalones de 600 mil se sienten alcanzables y te dan cinco motivos para celebrar.</p>',
+ ir:'plan', irt:'Crear una meta'},
+
+{id:'pareja', c:'habitos', t:'Hablar de plata en pareja o en familia',
+ k:'pareja familia hablar dinero gastos compartidos conversacion conflicto',
+ r:'Acuerden el método antes del monto: quién paga qué y cada cuánto revisan.',
+ b:'<p>Las peleas por plata casi nunca son por la cifra. Son por expectativas que nadie dijo en voz alta.</p>'+
+   '<p>Tres acuerdos que evitan la mayoría de los conflictos:</p>'+
+   '<ul><li><b>Cómo se reparten los gastos comunes.</b> Mitad y mitad solo es justo si ganan parecido; si no, proporcional al ingreso suele funcionar mejor.</li>'+
+   '<li><b>Plata individual sin justificación.</b> Un monto propio que cada quien gasta sin rendir cuentas. Evita el resentimiento acumulado.</li>'+
+   '<li><b>Una revisión al mes.</b> Media hora, con los números a la vista. Hablar de plata solo cuando hay problema convierte el tema en sinónimo de pelea.</li></ul>'+
+   '<div class="tip">Empiecen por contarse las deudas que cada uno tiene. Es incómodo una vez; ocultarlo es incómodo siempre.</div>'},
+
+{id:'mal-mes', c:'habitos', t:'Tuve un mes malo y dejé de registrar',
+ k:'falle recaida abandone dejar de registrar volver motivacion culpa',
+ r:'Retomar hoy. No hay que recuperar lo perdido ni empezar el mes que viene.',
+ b:'<p>Va a pasar. Un mes se te desordena, dejas de registrar tres semanas y da pereza volver porque «ya está incompleto».</p>'+
+   '<p>Dos cosas que ayudan:</p>'+
+   '<p><b>No intentes reconstruir el pasado.</b> Registra desde hoy. Los datos que faltan no valen tanto como el hábito que estás recuperando.</p>'+
+   '<p><b>Un mes malo no borra los buenos.</b> Si registraste tres meses y fallaste uno, tienes tres meses de información que antes no tenías.</p>'+
+   '<p>Lo único que sí hace daño es dejar de mirar los números justo cuando las cosas se ponen difíciles — que es exactamente cuando más los necesitas.</p>'}
+];
+
+/* ---------- buscador: sin tildes, sin mayúsculas ---------- */
+function norm(s){
+  s=String(s==null?'':s).toLowerCase();
+  try{ s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,''); }catch(e){}
+  return s.replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+}
+ARTS.forEach(function(a){ a._t=norm(a.t); a._k=norm(a.k); a._r=norm(a.r); a._b=norm(a.b); });
+
+var APR={q:'', cat:'', abiertos:{}};
+
+/* palabras de relleno: no aportan nada al buscar */
+var STOP={};
+('que como cual cuales para por con sin del los las una unos unas este esta esto eso '+
+ 'mas muy pero porque cuando donde quien mi tu su se lo la el un de en al es son si no '+
+ 'hay ser estar tener hacer debo debe deberia puedo quiero necesito sirve vale pena '+
+ 'conviene mejor cosa cosas hago tengo saber sobre me te nos').split(' ')
+  .forEach(function(w){ STOP[w]=1; });
+
+function buscar(q){
+  var term=norm(q);
+  if(!term) return null;
+  var palabras=term.split(' ').filter(function(w){ return w.length>1; });
+  if(!palabras.length) return [];
+  var clave=palabras.filter(function(w){ return !STOP[w]; });
+  if(!clave.length) clave=palabras;
+
+  /* palabra corta: coincidencia exacta (asi «20» no cae dentro de «2026»).
+     palabra larga: basta con que empiece igual («mensual» encuentra «mensuales»). */
+  function hay(txt,w){
+    if(w.length<=3) return (' '+txt+' ').indexOf(' '+w+' ')>=0;
+    return (' '+txt).indexOf(' '+w)>=0;
+  }
+  function puntuar(w,a){
+    var s=0;
+    if(hay(a._t,w)) s+=10;
+    if(hay(a._k,w)) s+=6;
+    if(hay(a._r,w)) s+=3;
+    if(hay(a._b,w)) s+=1;
+    return s;
+  }
+  function correr(exigirTodas){
+    var res=[];
+    ARTS.forEach(function(a){
+      var p=0, n=0;
+      clave.forEach(function(w){ var s=puntuar(w,a); if(s){ n++; p+=s; } });
+      if(!n) return;
+      if(exigirTodas && n<clave.length) return;
+      res.push({a:a, p:p, n:n});
+    });
+    res.sort(function(x,y){ return (y.n-x.n) || (y.p-x.p); });
+    return res.map(function(r){ return r.a; });
+  }
+  /* primero exige todas las palabras; si no hay nada, acepta parciales */
+  var r=correr(true);
+  return r.length ? r : correr(false);
+}
+
+var FAQ=['colchon','cuanto-ahorrar','4x1000','pago-minimo','cdt','estafas'];
+
+function pintarApr(){
+  var out='';
+  out += '<div class="searchbar'+(APR.q?' has':'')+'">'+
+    '<svg class="mag" viewBox="0 0 24 24"><use href="#ic-search"/></svg>'+
+    '<input id="aprQ" type="search" inputmode="search" autocomplete="off" '+
+      'placeholder="¿Qué quieres saber?" value="'+esc(APR.q)+'" oninput="aprBuscar(this.value)">'+
+    '<button class="clr" onclick="aprLimpiar()" aria-label="Borrar"><svg viewBox="0 0 24 24"><use href="#ic-x"/></svg></button>'+
+  '</div>';
+
+  out += '<div class="chips">'+
+    '<button class="chip'+(APR.cat?'':' on')+'" onclick="aprCat(\'\')">Todo</button>'+
+    CATEG.map(function(c){
+      return '<button class="chip'+(APR.cat===c.id?' on':'')+'" onclick="aprCat(\''+c.id+'\')">'+esc(c.n)+'</button>';
+    }).join('')+'</div>';
+
+  out += '<div id="aprRes"></div>';
+
+  out += '<div class="disc">Contenido educativo general, no asesoría financiera. '+
+    'Las cifras son de referencia a '+REF.fecha+' y cambian: verifícalas antes de tomar una decisión.</div>';
+
+  document.getElementById('aprBox').innerHTML=out;
+  pintarAprRes();
+}
+
+/* solo los resultados se repintan al escribir: la caja de búsqueda
+   nunca se recrea, para no romper el foco ni el teclado del celular */
+function pintarAprRes(){
+  var out='';
+  var esBusqueda = !!norm(APR.q);
+  var lista = esBusqueda ? buscar(APR.q)
+            : (APR.cat ? ARTS.filter(function(a){ return a.c===APR.cat; }) : null);
+
+  if(esBusqueda){
+    if(!lista.length){
+      out += '<div class="empty"><div class="catstage"><svg class="cat cat-md" viewBox="0 0 120 120"><use href="#cat-sleep"/></svg></div>'+
+        '<b>No encontré nada sobre «'+esc(APR.q)+'»</b>'+
+        '<p>Prueba con otra palabra: <b>deuda</b>, <b>ahorro</b>, <b>tarjeta</b>, <b>CDT</b>, <b>prima</b>, <b>inflación</b>.</p></div>';
+    }else{
+      out += '<div class="catcount">'+lista.length+' resultado'+(lista.length>1?'s':'')+'</div>'+
+        lista.map(artHTML).join('');
+    }
+  }else if(APR.cat){
+    var c=CATEG.filter(function(x){ return x.id===APR.cat; })[0];
+    out += '<div class="catcount">'+lista.length+' tema'+(lista.length>1?'s':'')+' en '+esc(c.n)+'</div>'+
+      lista.map(artHTML).join('');
+  }else{
+    out += '<div class="peekwrap">'+
+      '<svg class="cat peek" viewBox="0 0 140 56"><use href="#cat-peek"/></svg>'+
+      '<div class="card"><h3>Pregúntame lo que sea</h3>'+
+      '<div class="s13 muted">Escribe arriba una duda («¿me conviene un CDT?», «cómo salgo de Datacrédito») '+
+      'o mira los temas por categoría. Todo funciona sin internet.</div></div></div>';
+
+    out += '<div class="faqhd"><svg viewBox="0 0 24 24"><use href="#paw"/></svg>Lo que más se pregunta</div>'+
+      FAQ.map(function(id){
+        var a=ARTS.filter(function(x){ return x.id===id; })[0];
+        return a?artHTML(a):''; }).join('');
+
+    out += '<div class="faqhd"><svg viewBox="0 0 24 24"><use href="#paw"/></svg>Todos los temas</div>';
+    CATEG.forEach(function(c){
+      var n=ARTS.filter(function(a){ return a.c===c.id; }).length;
+      out += '<button class="btn ghost" style="justify-content:space-between;margin-bottom:8px" onclick="aprCat(\''+c.id+'\')">'+
+        '<span>'+esc(c.n)+'</span><span class="faint s13">'+n+'</span></button>';
+    });
+  }
+
+  document.getElementById('aprRes').innerHTML=out;
+}
+
+function artHTML(a){
+  return '<details class="art"'+(APR.abiertos[a.id]?' open':'')+' ontoggle="APR.abiertos[\''+a.id+'\']=this.open">'+
+    '<summary><span class="qi"><svg viewBox="0 0 24 24"><use href="#paw"/></svg></span>'+
+    '<span class="qt"><b>'+esc(a.t)+'</b><span>'+esc(a.r)+'</span></span>'+
+    '<span class="chev">+</span></summary>'+
+    '<div class="ab">'+a.b+
+      (a.ir?'<button class="goto" onclick="ir(\''+a.ir+'\')">'+esc(a.irt||'Ver en la app')+' →</button>':'')+
+    '</div></details>';
+}
+
+function aprBuscar(v){
+  APR.q=v;
+  var sb=document.querySelector('#s-apr .searchbar');
+  if(sb) sb.classList.toggle('has', !!v);
+  pintarAprRes();
+}
+function aprLimpiar(){
+  APR.q='';
+  var el=document.getElementById('aprQ');
+  if(el){ el.value=''; el.focus(); }
+  var sb=document.querySelector('#s-apr .searchbar');
+  if(sb) sb.classList.remove('has');
+  pintarAprRes();
+}
+function aprCat(c){ APR.cat=c; APR.q=''; pintarApr(); window.scrollTo(0,0); }
+
+/* ---- tema ---- */
+function aplicarTema(){
+  var t=S.ajustes.tema||'auto';
+  if(t==='auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme',t);
+  var b=document.getElementById('temaBtn');
+  if(b) b.textContent = t==='dark'?'☀️':(t==='light'?'🌙':'🌗');
+}
+function setTema(t){ S.ajustes.tema=t; aplicarTema(); pintarTodo(); }
+function toggleTema(){
+  var o={auto:'light',light:'dark',dark:'auto'};
+  setTema(o[S.ajustes.tema||'auto']);
+  toast({auto:'Tema automático',light:'Tema claro',dark:'Tema oscuro'}[S.ajustes.tema]);
+}
+
+/* =========================================================================
+   ARRANQUE
+   ========================================================================= */
+(function arrancar(){
+  STORAGE_OK=probarAlmacenamiento();
+  var ls=lsGet(), sd=semilla();
+  S = masNuevo(ls, sd) || estadoNuevo();
+  var b=estadoNuevo();
+  S.perfil=Object.assign(b.perfil, S.perfil||{});
+  S.ajustes=Object.assign(b.ajustes, S.ajustes||{});
+  S.mov=S.mov||[]; S.metas=S.metas||[]; S.deudas=S.deudas||[]; S.fijos=S.fijos||[];
+  S.perfil.nombre='Salomé';
+  aplicarTema(); pintar();
+
+  abrirIDB().then(function(db){
+    idb=db;
+    return idbGet();
+  }).then(function(ix){
+    var mejor=masNuevo(ix, S);
+    if(mejor && mejor!==S && (mejor.updatedAt||'') > (S.updatedAt||'')){
+      S=mejor;
+      S.perfil=Object.assign(estadoNuevo().perfil, S.perfil||{});
+      S.ajustes=Object.assign(estadoNuevo().ajustes, S.ajustes||{});
+      aplicarTema(); pintar();
+    }
+    guardar();
+    if(!S.perfil.onboarded && !S.mov.length) setTimeout(onboarding, 450);
+  });
+
+  /* modo app: solo aplica cuando esta publicado en una direccion https.
+     Con el archivo suelto no hace nada y la app funciona igual. */
+  if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1')){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){});
+    });
+  }
+
+  window.addEventListener('beforeunload', function(){ try{ lsPut(S); }catch(e){} });
+  document.addEventListener('visibilitychange', function(){ if(document.hidden) try{ lsPut(S); }catch(e){} });
+})();
+</script>
+</body>
+</html>
