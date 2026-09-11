@@ -459,8 +459,9 @@ nav button.on svg{color:var(--accent)}
   font-size:11px; font-weight:600; color:var(--muted)}
 .gatoOp.on{border-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink)}
 .gatoOp .pxw{pointer-events:none}
-.pxstage{position:relative; display:grid; place-items:center; padding:8px 0 4px}
-.pxstage::before{content:''; position:absolute; width:124px; height:124px; border-radius:50%;
+/* el halo tiene que caber DENTRO del stage: si se sale, se come el texto de al lado */
+.pxstage{position:relative; display:grid; place-items:center; min-height:104px; padding:8px 0 4px}
+.pxstage::before{content:''; position:absolute; width:92px; height:92px; border-radius:50%;
   background:var(--cat-halo)}
 .pxstage .pxw{position:relative}
 .pet{background:none; border:none; padding:0; display:block; cursor:pointer}

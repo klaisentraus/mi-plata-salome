@@ -5,7 +5,7 @@
    Si no hay internet, se usa la copia guardada.
    Los íconos y el manifest: primero lo guardado, que casi nunca cambian. */
 
-var CACHE = 'miplata-v16';
+var CACHE = 'miplata-v17';
 var ASSETS = [
   './',
   './index.html',
