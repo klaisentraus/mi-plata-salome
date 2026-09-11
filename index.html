@@ -209,9 +209,15 @@ nav button.on{color:var(--accent)} nav button.on .e{filter:none; opacity:1}
   transition:transform .28s cubic-bezier(.32,.72,0,1); max-height:94vh; display:flex; flex-direction:column;
   padding-bottom:env(safe-area-inset-bottom)}
 .sheet.on{transform:none}
-.grab{width:38px;height:4px;border-radius:99px;background:var(--line); margin:9px auto 0; flex:none}
-.sheet .body{overflow-y:auto; padding:14px 16px 18px; -webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain}
+/* la barrita de arriba cierra la ficha: un toque, o arrastrándola hacia abajo */
+.sheet .cab{position:relative; flex:none; height:44px; touch-action:none; cursor:grab}
+.sheet .cab:active{cursor:grabbing}
+.grab{width:44px;height:5px;border-radius:99px;background:var(--line); margin:12px auto 0; flex:none;
+  transition:background .15s}
+.sheet .cab:active .grab{background:var(--muted)}
+/* nada de arrastar la ficha de lado: aquí solo se sube y se baja, como en el resto */
+.sheet .body{overflow-y:auto; overflow-x:hidden; touch-action:pan-y;
+  padding:4px 16px 18px; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
 .sheet h2{font-size:18px; font-weight:670; letter-spacing:-.01em}
 
 /* ---------- keypad ---------- */
@@ -240,6 +246,9 @@ label.f{display:block; font-size:12px; color:var(--muted); font-weight:600; marg
 input.f, select.f, textarea.f{width:100%; padding:12px 13px; border-radius:11px; border:1px solid var(--line);
   background:var(--surface); font-size:16px; outline:none}
 input.f:focus, select.f:focus, textarea.f:focus{border-color:var(--accent)}
+/* en iOS input[type=date] trae un ancho propio que no se encoge: sin esto se sale de la ficha */
+input.f[type="date"]{-webkit-appearance:none; appearance:none; display:block; min-width:0; max-width:100%}
+input.f[type="date"]::-webkit-date-and-time-value{text-align:left; margin:0}
 textarea.f{min-height:88px; resize:vertical; font-size:16px; line-height:1.4;
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 
@@ -338,9 +347,6 @@ details.acc .c b{color:var(--text)}
 .catstage .cat{position:relative; z-index:1}
 
 /* gato espiando por cima de um card */
-.peekwrap{position:relative; margin-top:26px}
-.peekwrap .peek{position:absolute; top:-42px; right:14px; z-index:2; pointer-events:none}
-.peekwrap>.card,.peekwrap>.hero{margin-top:0}
 
 .pawline{display:flex; align-items:center; gap:7px; color:var(--faint)}
 .pawline svg{width:14px;height:14px;flex:none}
@@ -720,7 +726,9 @@ nav button.on svg{color:var(--accent)}
 </div></nav>
 
 <div class="scrim" id="scrim" onclick="cerrarSheet()"></div>
-<div class="sheet" id="sheet"><div class="grab"></div><div class="body" id="sheetBody"></div></div>
+<div class="sheet" id="sheet">
+  <div class="cab" id="sheetCab" role="button" tabindex="0" aria-label="Cerrar"><div class="grab"></div></div>
+  <div class="body" id="sheetBody"></div></div>
 <div class="toast" id="toast"></div>
 
 <script id="seed" type="application/json"></script>
@@ -2092,6 +2100,42 @@ function sheet(titulo, html){
   document.getElementById('scrim').classList.add('on');
   document.body.style.overflow='hidden';
 }
+/* la barrita de arriba: un toque cierra, y también se puede arrastrar la ficha hacia abajo */
+var ARR={activo:false, y0:0, t0:0, dy:0};
+function arrIni(y){
+  ARR.activo=true; ARR.y0=y; ARR.t0=Date.now(); ARR.dy=0;
+  document.getElementById('sheet').style.transition='none';
+}
+function arrMueve(y){
+  if(!ARR.activo) return;
+  ARR.dy=Math.max(0, y-ARR.y0);
+  document.getElementById('sheet').style.transform='translateY('+ARR.dy+'px)';
+}
+function arrFin(){
+  if(!ARR.activo) return;
+  ARR.activo=false;
+  var sh=document.getElementById('sheet');
+  sh.style.transition=''; sh.style.transform='';
+  /* un toque cierra; un arrastre cierra si bajó bastante o si fue un tirón rápido */
+  var tiron=(Date.now()-ARR.t0)<300 && ARR.dy>24;
+  if(ARR.dy<6 || ARR.dy>90 || tiron) cerrarSheet();
+}
+function montarArrastre(){
+  var cab=document.getElementById('sheetCab'); if(!cab) return;
+  cab.addEventListener('touchstart', function(e){ arrIni(e.touches[0].clientY); }, {passive:true});
+  cab.addEventListener('touchmove', function(e){
+    arrMueve(e.touches[0].clientY); if(e.cancelable) e.preventDefault();
+  }, {passive:false});
+  cab.addEventListener('touchend', arrFin);
+  cab.addEventListener('touchcancel', arrFin);
+  cab.addEventListener('mousedown', function(e){ arrIni(e.clientY); e.preventDefault(); });
+  window.addEventListener('mousemove', function(e){ if(ARR.activo) arrMueve(e.clientY); });
+  window.addEventListener('mouseup', function(){ if(ARR.activo) arrFin(); });
+  cab.addEventListener('keydown', function(e){
+    if(e.key==='Enter' || e.key===' ') { e.preventDefault(); cerrarSheet(); }
+  });
+}
+
 function cerrarSheet(){
   document.getElementById('sheet').classList.remove('on');
   document.getElementById('scrim').classList.remove('on');
@@ -3261,11 +3305,9 @@ function pintarAprRes(){
     out += '<div class="catcount">'+lista.length+' tema'+(lista.length>1?'s':'')+' en '+esc(c.n)+'</div>'+
       lista.map(artHTML).join('');
   }else{
-    out += '<div class="peekwrap">'+
-      ''+'<span class="peek">'+pxa('idle',1)+'</span>'+''+
-      '<div class="card"><h3>Pregúntame lo que sea</h3>'+
+    out += '<div class="card mt16"><h3>Pregúntame lo que sea</h3>'+
       '<div class="s13 muted">Escribe arriba una duda («¿me conviene un CDT?», «cómo salgo de Datacrédito») '+
-      'o mira los temas por categoría. Todo funciona sin internet.</div></div></div>';
+      'o mira los temas por categoría. Todo funciona sin internet.</div></div>';
 
     out += '<div class="faqhd"><svg viewBox="0 0 24 24"><use href="#paw"/></svg>Lo que más se pregunta</div>'+
       FAQ.map(function(id){
@@ -3388,6 +3430,12 @@ function petAccion(){
   if(base!=='idle' && base!=='sleep') return;
   var caja=document.getElementById('pet'), sp=document.getElementById('petSprite');
   if(!caja || !sp) return;
+  /* a veces suelta algo sin que lo toquen; los recados de Rafael, muy de vez en cuando */
+  if(Math.random()<0.12){
+    petDecir(Math.random()<0.04 ? unaDe(PXRAFA) : unaDe(PXMIMOS));
+    petForzar(Math.random()<0.5?'happy':'dance', 2800);
+    return;
+  }
   if(Math.random()<0.5){
     /* pasea, sin meterse debajo del botón + que está en el centro */
     var fab=document.querySelector('.fab');
@@ -3411,11 +3459,81 @@ function petTocar(){
     petDecir('Me escondí. Tú sigue con lo tuyo. 📦');
     petForzar('box', 4200); return;
   }
+  var d=Math.random();
+  if(d<0.025){ petDecir(unaDe(PXRAFA)); petForzar('happy', 3000); return; }
+  if(d<0.45){ petDecir(unaDe(PXMIMOS)); petForzar('excited', 2400); return; }
   var fr=frasesGato();
   PET.idx=PET.idx%fr.length;
   petDecir(fr[PET.idx]); PET.idx++;
   petForzar('sad', 1300);
 }
+
+/* ---- lo que dice el gato ---- */
+
+/* cariño y ánimo del día a día: salen al tocarlo y, de vez en cuando, solito */
+var PXMIMOS=[
+  'Cada peso que anotas es un peso que deja de perderse. 🐾',
+  'No tienes que ser perfecta, solo constante.',
+  'Ayer no lo hiciste. Hoy sí. Eso ya cuenta.',
+  'La plata no se organiza sola, pero tú tampoco estás sola.',
+  'Miau. Lo estás haciendo mejor de lo que crees.',
+  'Ahorrar poquito también es ahorrar.',
+  'Un mes desordenado no borra todos los demás.',
+  'Tranquila: mirar los números no los empeora, los aclara.',
+  'Te vi anotando. Estoy orgulloso de ti. 🐾',
+  'La meta no es gastar menos café. Es dejar de adivinar.',
+  'Si hoy no te alcanza, mañana vas a saber por qué. Eso ya es ganar.',
+  'Respira. Ningún número de aquí dice quién eres.',
+  'Estás construyendo algo, aunque todavía no se note.',
+  'Los gatos dormimos 16 horas y aun así llegamos. Tú vas bien.',
+  'Ronroneo de aprobación activado. 🐾',
+  'Guardar plata es quererse con anticipación.',
+  'Tu yo de diciembre te va a agradecer esto.',
+  'Hoy solo un número. Mañana otro. Así se hace.',
+  'Que no te alcance no quiere decir que lo estés haciendo mal.',
+  'Volviste. Eso es lo único que hacía falta.',
+  'Nadie nace sabiendo esto. Tú ya empezaste.',
+  'Si te da miedo abrir la app, ábrela igual. Yo te acompaño. 🖤',
+  'Te lo digo como gato: lo difícil era empezar, y ya lo hiciste.',
+  'No estás atrasada. Estás llegando a tu ritmo.',
+  'Comparar tu plata con la de otro es como comparar maullidos. No sirve.',
+  'Un gasto no planeado no arruina el mes. Solo hay que anotarlo.',
+  'Tener claridad ya es tener control. Lo demás viene después.',
+  'Lo que hoy te parece poquito, en seis meses tiene nombre.',
+  'Descansa también. Ordenar la plata no es castigarse.',
+  'Mereces una vida que te alcance. Es todo lo que hacemos aquí. 🖤',
+  'Si te equivocaste anotando, se arregla. Nada aquí es para siempre.',
+  'Miau. Acuérdate de que llegaste hasta acá tú sola.',
+  'Ahorrar no es dejar de vivir. Es escoger para qué.',
+  'Hoy me acordé de ti. Bueno, yo vivo aquí, pero igual. 🐾',
+  'Un día a la vez, una anotación a la vez. Así se ordena una vida.',
+  'No te falta disciplina. Te faltaba ver los números. Ya los ves.',
+  'Que se te hayan pasado dos días no borra todo lo de antes.',
+  'Estar tranquila con la plata también es un lujo. Y es gratis.',
+  'Cuidas de todos. Esta app es para que alguien cuide de ti. 🖤',
+  'La deuda que miras de frente ya no da tanto miedo.',
+  'Vas a mirar atrás y no vas a creer que empezaste desde cero.',
+  'Te dejo el sofá calientico. Sigue en lo tuyo. 🐾'
+];
+
+/* estas salen poco: son recados que me dejó Rafael */
+var PXRAFA=[
+  'Psst… Rafael me pidió que te dijera que te extraña. 🖤',
+  'Rafael dice que te quiere mucho. Yo solo soy el mensajero. 🐾',
+  'Me manda Rafael. Dice que piensa en ti más de lo que admite.',
+  'Rafael hizo esta app por ti. Eso también es una forma de decir te quiero.',
+  'Secreto de gato: Rafael pregunta por ti seguido. 🖤',
+  'Rafael te manda un abrazo. Yo pongo el ronroneo.',
+  'Dice Rafael que te extraña un montón. Y que ahorres, pero sobre todo que te extraña.',
+  'Rafael quería estar aquí. Como no puede, me dejó a mí. 🐾',
+  'Si estás leyendo esto: Rafael te quiere mucho, Salomé. 🖤',
+  'Rafael dice que ya quiere verte.',
+  'Vengo de parte de Rafael: que no se te olvide que te quiere.',
+  'Rafael te extraña. Bastante más de lo normal. 🖤',
+  'Rafael dice que te quiere. Así, sin adorno.',
+  'Me enseñaron a decir una sola cosa en tu idioma: te extraño, Salomé. 🖤'
+];
+function unaDe(a){ return a[Math.floor(Math.random()*a.length)]; }
 
 function frasesGato(){
   var pv=prevision(), p=plan(), sa=saldoActual(), r=resumen(ymHoy()), f=[];
@@ -3462,7 +3580,7 @@ function toggleTema(){
   S.ajustes=Object.assign(b.ajustes, S.ajustes||{});
   S.mov=S.mov||[]; S.metas=S.metas||[]; S.deudas=S.deudas||[]; S.fijos=S.fijos||[];
   S.perfil.nombre='Salomé';
-  aplicarTema(); aplicarGato(); pintar(); petAgendar();
+  aplicarTema(); aplicarGato(); pintar(); petAgendar(); montarArrastre();
 
   abrirIDB().then(function(db){
     idb=db;

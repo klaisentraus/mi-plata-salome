@@ -58,6 +58,24 @@ header .stage svg{position:relative; width:112px}
 h1{font-size:30px; line-height:1.15; letter-spacing:-.025em; margin:0; font-weight:700}
 header p{color:var(--muted); margin:10px auto 0; max-width:44ch; font-size:15.5px}
 
+/* el arranque: lo único que hay que hacer el primer día */
+.rapido{background:var(--surface); border:1px solid var(--line); border-radius:18px;
+  padding:20px 20px 4px; margin:28px 0 10px; box-shadow:var(--shadow)}
+.rapido .tit{font-size:11.5px; text-transform:uppercase; letter-spacing:.09em;
+  color:var(--accent); font-weight:700}
+.rapido h2{font-size:21px; margin:6px 0 0; letter-spacing:-.022em; line-height:1.2}
+.rapido>p{color:var(--muted); font-size:15px; margin-top:9px}
+.rapido ol{list-style:none; counter-reset:r; margin:18px 0 0; padding:0}
+.rapido li{counter-increment:r; position:relative; padding:0 0 17px 40px;
+  font-size:15.5px; line-height:1.55}
+.rapido li::before{content:counter(r); position:absolute; left:0; top:1px;
+  width:26px; height:26px; border-radius:50%; background:var(--accent-soft);
+  color:var(--accent-ink); display:grid; place-items:center; font-size:13px; font-weight:700}
+.rapido li span{display:block; color:var(--muted); font-size:14.5px; margin-top:3px}
+.rapido .cola{border-top:1px solid var(--line); margin-top:2px; padding:14px 0 16px;
+  color:var(--muted); font-size:14.5px}
+.rapido .cola b{color:var(--text)}
+
 nav.idx{background:var(--surface); border:1px solid var(--line); border-radius:16px;
   padding:16px 18px; margin:28px 0 8px; box-shadow:var(--shadow)}
 nav.idx b{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.09em;
@@ -171,6 +189,34 @@ footer a{color:var(--accent)}
      a medida que las vas necesitando.</p>
 </header>
 
+<div class="rapido">
+  <div class="tit">Empieza aquí</div>
+  <h2>Los primeros 10 minutos</h2>
+  <p>Si hoy no vas a leer nada más, haz solo estas cinco cosas. Con eso la app
+     ya empieza a servirte.</p>
+  <ol>
+    <li><b>Instálala en tu pantalla de inicio.</b>
+      <span>Antes de anotar nada, de verdad. Está explicado en
+      <a href="#instalar">el punto 2</a>. Si anotas primero y la instalas después,
+      lo que escribiste se queda por fuera.</span></li>
+    <li><b>Dile cuánta plata tienes hoy.</b>
+      <span>El botón <b>«Poner mi saldo de hoy»</b>, en la primera pantalla. Sin ese
+      número la app arranca en cero y nunca va a cuadrar con tu banco.</span></li>
+    <li><b>Anota un gasto y un ingreso.</b>
+      <span>Con el botón <b>+</b> verde de abajo. Cinco segundos cada uno. Con esos
+      tres pasos hechos, se te abre el resto de la app.</span></li>
+    <li><b>Registra lo que pagas todos los meses.</b>
+      <span>El arriendo, el celular, la cuota de la tarjeta, lo que le debas a alguien.
+      Desde ahí la app te avisa antes de que venza y te dice si te alcanza.</span></li>
+    <li><b>Mándate la copia por WhatsApp.</b>
+      <span><b>Más → Copia de seguridad</b>. Diez segundos, y dejas de depender de
+      este celular. Repítelo cada tanto: la app te lo recuerda sola.</span></li>
+  </ol>
+  <div class="cola">Lo demás — el plan, las calculadoras, las 45 respuestas de
+    <b>Aprender</b> — va apareciendo cuando lo necesitas. No hay afán, y no tienes
+    que entenderlo todo hoy.</div>
+</div>
+
 <nav class="idx">
   <b>En esta guía</b>
   <ol>
@@ -281,6 +327,11 @@ footer a{color:var(--accent)}
      para abrirlo.</p>
   <p class="muted" style="font-size:14.5px">Si borras una meta que ya tenía plata guardada,
      esa plata no se pierde: pasa a tu colchón.</p>
+
+  <h3>Para salir sin anotar nada</h3>
+  <p>Arriba de la ventana que se abre hay una <b>barrita gris</b>. Tócala y la ventana se
+     cierra, o arrástrala hacia abajo con el dedo, como cuando cierras una notificación.
+     Tocar la parte oscura de arriba también sirve.</p>
 
   <div class="note ok">
     <b>Anota en el momento, no el domingo.</b>
