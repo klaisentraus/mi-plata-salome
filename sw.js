@@ -1,12 +1,16 @@
 /* Mi Plata — service worker
    Guarda la app en el celular para que abra sin internet.
-   Estrategia: responde ya con lo guardado y actualiza por detrás,
-   así la próxima vez ya tiene la versión nueva. */
 
-var CACHE = 'miplata-v1';
+   La página: primero la red, así una actualización llega de una.
+   Si no hay internet, se usa la copia guardada.
+   Los íconos y el manifest: primero lo guardado, que casi nunca cambian. */
+
+var CACHE = 'miplata-v16';
 var ASSETS = [
   './',
   './index.html',
+  './guia.html',
+  './cat.png',
   './manifest.webmanifest',
   './apple-touch-icon.png',
   './icon-192.png',
@@ -44,6 +48,26 @@ self.addEventListener('fetch', function (e) {
   try { url = new URL(req.url); } catch (err) { return; }
   if (url.origin !== self.location.origin) return;
 
+  var esPagina = req.mode === 'navigate' ||
+                 (req.headers.get('accept') || '').indexOf('text/html') >= 0;
+
+  if (esPagina) {
+    e.respondWith(
+      fetch(req).then(function (res) {
+        if (res && res.ok) {
+          var copia = res.clone();
+          caches.open(CACHE).then(function (c) { c.put('./index.html', copia); });
+        }
+        return res;
+      }).catch(function () {
+        return caches.match('./index.html').then(function (r) {
+          return r || caches.match('./');
+        });
+      })
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then(function (hit) {
       var net = fetch(req).then(function (res) {
@@ -52,10 +76,7 @@ self.addEventListener('fetch', function (e) {
           caches.open(CACHE).then(function (c) { c.put(req, copia); });
         }
         return res;
-      }).catch(function () {
-        /* sin internet: si es una navegación, devuelve la app guardada */
-        return hit || caches.match('./index.html');
-      });
+      }).catch(function () { return hit; });
       return hit || net;
     })
   );

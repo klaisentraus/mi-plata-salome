@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f3ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<title>Guía de Mi Plata</title>
+<style>
+:root{
+  --bg:#f4f3ee; --surface:#ffffff; --surface2:#faf9f5; --sunken:#eeece4;
+  --text:#1b1a17; --muted:#57564f; --faint:#8f8d84; --line:#e4e1d7;
+  --accent:#0d7a6f; --accent-ink:#065048; --accent-soft:#dcefea;
+  --out:#c25239; --out-soft:#fbe5df;
+  --warn:#a8711a; --warn-soft:#fbeed6;
+  --save:#8a6bc4; --save-soft:#ece4f8;
+  --cat:#1b1b24; --cat-paw:#2f2f3c; --cat-ear:#e8aab4; --cat-nose:#e2899b;
+  --cat-eye:#f4b73f; --cat-line:#cfccc3; --cat-halo:#e9e5d9; --cat-rim:transparent;
+  --shadow:0 1px 2px rgba(24,22,17,.05), 0 6px 18px -8px rgba(24,22,17,.16);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#14161a; --surface:#1d2026; --surface2:#22252c; --sunken:#282c34;
+    --text:#eceae4; --muted:#b2b4ae; --faint:#82847c; --line:#2f333b;
+    --accent:#4ec5b2; --accent-ink:#a9e5db; --accent-soft:#17342f;
+    --out:#f08a6c; --out-soft:#3a231c;
+    --warn:#e0aa54; --warn-soft:#372a15;
+    --save:#b79df0; --save-soft:#2a2338;
+    --cat:#0e0e15; --cat-paw:#20202b; --cat-ear:#c98d98; --cat-nose:#c47b8c;
+    --cat-line:#7e7b74; --cat-halo:#272b34; --cat-rim:rgba(255,255,255,.55);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 22px -10px rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+  .cat{filter:drop-shadow(0 0 1.6px var(--cat-rim)) drop-shadow(0 0 7px rgba(255,255,255,.10))}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0; background:var(--bg); color:var(--text);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:660px; margin:0 auto; padding:0 20px 80px}
+.cat{display:block; width:100%; height:auto}
+
+header{padding:calc(env(safe-area-inset-top) + 34px) 0 6px; text-align:center}
+header .stage{position:relative; display:grid; place-items:center; margin-bottom:14px}
+header .stage::before{content:''; position:absolute; width:132px; height:132px; border-radius:50%;
+  background:var(--cat-halo)}
+header .stage svg{position:relative; width:112px}
+.px{display:block; width:64px; height:64px; background:url(cat.png) no-repeat;
+  transform-origin:top left; image-rendering:pixelated; image-rendering:crisp-edges}
+.pxw{display:block; position:relative}
+.px-idle{animation:px_idle 1.4s steps(1,end) infinite}
+@keyframes px_idle{0%{background-position-x:-0px}16.6667%{background-position-x:-64px}33.3333%{background-position-x:-128px}50%{background-position-x:-192px}66.6667%{background-position-x:-256px}83.3333%{background-position-x:-320px}}
+@media (prefers-reduced-motion:reduce){ .px{animation:none} }
+h1{font-size:30px; line-height:1.15; letter-spacing:-.025em; margin:0; font-weight:700}
+header p{color:var(--muted); margin:10px auto 0; max-width:44ch; font-size:15.5px}
+
+nav.idx{background:var(--surface); border:1px solid var(--line); border-radius:16px;
+  padding:16px 18px; margin:28px 0 8px; box-shadow:var(--shadow)}
+nav.idx b{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.09em;
+  color:var(--faint); margin-bottom:10px}
+nav.idx ol{margin:0; padding-left:22px}
+nav.idx li{margin:5px 0}
+nav.idx a{color:var(--text); text-decoration:none; border-bottom:1px solid var(--line)}
+nav.idx a:hover{border-color:var(--accent); color:var(--accent)}
+
+section{padding-top:38px; scroll-margin-top:12px}
+h2{font-size:22px; line-height:1.25; letter-spacing:-.02em; margin:0 0 4px; font-weight:680;
+  display:flex; align-items:baseline; gap:11px}
+h2 .n{font-size:13px; font-weight:700; color:var(--accent); background:var(--accent-soft);
+  border-radius:99px; padding:3px 10px; flex:none; letter-spacing:0}
+h3{font-size:16.5px; margin:24px 0 6px; font-weight:660}
+p{margin:12px 0}
+ul{margin:12px 0; padding-left:22px}
+li{margin:7px 0}
+b,strong{font-weight:650}
+.muted{color:var(--muted)}
+.lead{color:var(--muted); font-size:15.5px; margin-top:8px}
+
+.card{background:var(--surface); border:1px solid var(--line); border-radius:16px;
+  padding:16px 18px; margin:18px 0; box-shadow:var(--shadow)}
+.card p:first-child{margin-top:0} .card p:last-child{margin-bottom:0}
+
+.note{border-radius:14px; padding:14px 16px; margin:18px 0; font-size:15px; line-height:1.6}
+.note.ok{background:var(--accent-soft); color:var(--accent-ink)}
+.note.warn{background:var(--warn-soft); color:var(--warn)}
+.note.bad{background:var(--out-soft); color:var(--out)}
+.note b{font-weight:700}
+.note p{margin:8px 0 0} .note p:first-child{margin-top:0}
+
+.ui{display:inline-flex; align-items:center; gap:5px; background:var(--sunken);
+  border:1px solid var(--line); border-radius:7px; padding:1px 8px; font-size:14px;
+  font-weight:600; white-space:nowrap}
+.plus{display:inline-grid; place-items:center; width:24px; height:24px; border-radius:50%;
+  background:var(--accent); color:#fff; vertical-align:-6px; margin:0 1px}
+@media (prefers-color-scheme:dark){ .plus{color:#06231f} }
+.plus svg{width:12px; height:12px}
+
+table{width:100%; border-collapse:collapse; margin:16px 0; font-size:15px}
+th,td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-size:11.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--faint); font-weight:650}
+td:first-child{font-weight:620; white-space:nowrap; padding-right:16px}
+
+.steps{counter-reset:s; list-style:none; padding:0; margin:16px 0}
+.steps li{counter-increment:s; position:relative; padding-left:42px; margin:14px 0}
+.steps li::before{content:counter(s); position:absolute; left:0; top:0;
+  width:27px; height:27px; border-radius:50%; background:var(--accent); color:#fff;
+  display:grid; place-items:center; font-size:13.5px; font-weight:700}
+@media (prefers-color-scheme:dark){ .steps li::before{color:#06231f} }
+
+.pawline{display:flex; align-items:center; gap:9px; margin:34px 0 0; color:var(--faint)}
+.pawline svg{width:15px; height:15px; flex:none}
+.pawline i{flex:1; height:1px; background:var(--line); font-style:normal}
+
+footer{margin-top:46px; padding-top:22px; border-top:1px solid var(--line);
+  font-size:13px; color:var(--faint); line-height:1.6}
+footer a{color:var(--accent)}
+.volver{display:inline-flex; align-items:center; gap:8px; margin-top:20px; padding:13px 20px;
+  border-radius:13px; background:var(--accent); color:#fff; text-decoration:none; font-weight:650}
+@media (prefers-color-scheme:dark){ .volver{color:#06231f} }
+</style>
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0" aria-hidden="true"><defs>
+<symbol id="cat-sit" viewBox="0 0 120 120">
+  <path d="M88 102 C110 102 116 82 104 70 C98 64 89 66 88 73" fill="none" stroke="var(--cat)" stroke-width="9" stroke-linecap="round"/>
+  <path d="M60 50 C40 50 30 72 30 92 C30 103 41 108 60 108 C79 108 90 103 90 92 C90 72 80 50 60 50 Z" fill="var(--cat)"/>
+  <path d="M33 33 L28 7 L52 21 Z" fill="var(--cat)"/>
+  <path d="M87 33 L92 7 L68 21 Z" fill="var(--cat)"/>
+  <circle cx="60" cy="45" r="26" fill="var(--cat)"/>
+  <path d="M36 29 L33 15 L46 23 Z" fill="var(--cat-ear)"/>
+  <path d="M84 29 L87 15 L74 23 Z" fill="var(--cat-ear)"/>
+  <ellipse cx="50" cy="43" rx="6" ry="7.6" fill="var(--cat-eye)"/>
+  <ellipse cx="70" cy="43" rx="6" ry="7.6" fill="var(--cat-eye)"/>
+  <ellipse cx="50" cy="43" rx="2.1" ry="6.2" fill="#141118"/>
+  <ellipse cx="70" cy="43" rx="2.1" ry="6.2" fill="#141118"/>
+  <circle cx="52.2" cy="39.6" r="1.5" fill="#fff" opacity=".9"/>
+  <circle cx="72.2" cy="39.6" r="1.5" fill="#fff" opacity=".9"/>
+  <path d="M56.6 53 L63.4 53 L60 57.2 Z" fill="var(--cat-nose)"/>
+  <path d="M60 57.2 C60 60.4 57 61.4 55 59.2 M60 57.2 C60 60.4 63 61.4 65 59.2" fill="none" stroke="var(--cat-line)" stroke-width="1.5" stroke-linecap="round"/>
+  <g stroke="var(--cat-line)" stroke-width="1.3" stroke-linecap="round" opacity=".7">
+    <path d="M45 51 L27 47"/><path d="M45 54.5 L28 56"/>
+    <path d="M75 51 L93 47"/><path d="M75 54.5 L92 56"/>
+  </g>
+  <ellipse cx="47" cy="104" rx="9.5" ry="5" fill="var(--cat-paw)"/>
+  <ellipse cx="73" cy="104" rx="9.5" ry="5" fill="var(--cat-paw)"/>
+</symbol>
+<symbol id="paw" viewBox="0 0 24 24">
+  <ellipse cx="12" cy="16" rx="6.4" ry="5.4" fill="currentColor"/>
+  <ellipse cx="5" cy="10" rx="2.7" ry="3.5" fill="currentColor"/>
+  <ellipse cx="19" cy="10" rx="2.7" ry="3.5" fill="currentColor"/>
+  <ellipse cx="9.2" cy="5" rx="2.7" ry="3.6" fill="currentColor"/>
+  <ellipse cx="15.8" cy="5" rx="2.7" ry="3.6" fill="currentColor"/>
+</symbol>
+<symbol id="ic-plus" viewBox="0 0 24 24">
+  <path d="M12 5.2V18.8M5.2 12H18.8" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+</symbol>
+</defs></svg>
+
+<div class="wrap">
+
+<header>
+  <div class="stage"><span class="pxw" style="width:128px;height:128px"><i class="px px-idle" style="transform:scale(2)"></i></span></div>
+  <h1>Cómo usar Mi Plata</h1>
+  <p>Una guía corta para sacarle todo el provecho. <b>No tienes que leerla de una</b>,
+     ni entender todo el primer día: la app te va mostrando las cosas de a poco,
+     a medida que las vas necesitando.</p>
+</header>
+
+<nav class="idx">
+  <b>En esta guía</b>
+  <ol>
+    <li><a href="#que-es">Qué es y qué no es</a></li>
+    <li><a href="#instalar">Ponerla en tu pantalla de inicio</a></li>
+    <li><a href="#anotar">Anotar: el botón verde</a></li>
+    <li><a href="#inicio">Inicio: qué te está diciendo</a></li>
+    <li><a href="#pagos">Pagos con fecha y avisos</a></li>
+    <li><a href="#plan">Plan: cuánto guardar y en qué orden</a></li>
+    <li><a href="#invertir">Invertir: las calculadoras</a></li>
+    <li><a href="#aprender">Aprender: pregúntale lo que sea</a></li>
+    <li><a href="#copia">La copia de seguridad</a></li>
+    <li><a href="#trucos">Para no abandonarla a la semana</a></li>
+  </ol>
+</nav>
+
+<section id="que-es">
+  <h2><span class="n">1</span> Qué es y qué no es</h2>
+  <p class="lead">Mi Plata es un cuaderno de cuentas que hace las sumas por ti y te dice
+     qué hacer con el resultado.</p>
+
+  <p><b>Lo que es importante que sepas:</b></p>
+  <ul>
+    <li><b>No tiene cuenta ni contraseña.</b> No te registras en nada.</li>
+    <li><b>Tus datos se quedan en tu celular.</b> No se suben a ningún servidor. Nadie más los ve.</li>
+    <li><b>Funciona sin internet.</b> Después de abrirla la primera vez, puedes usarla en el
+        bus, en el avión o con los datos apagados.</li>
+    <li><b>No se conecta a tu banco.</b> No le pide claves a nadie, no lee tus movimientos.
+        Tú le cuentas lo que pasó y ella hace las cuentas.</li>
+  </ul>
+
+  <div class="note ok">
+    <b>Eso último no es un defecto, es el punto.</b>
+    <p>Anotar a mano toma cinco segundos y es justo lo que hace que te des cuenta de en qué
+    se te va la plata. Una app que lo hace sola te deja igual de perdida que antes.</p>
+  </div>
+</section>
+
+<section id="instalar">
+  <h2><span class="n">2</span> Ponerla en tu pantalla de inicio</h2>
+  <p class="lead">Hazlo antes de empezar a usarla. Es lo único de esta guía que si lo
+     haces en desorden te puede costar perder lo que anotaste.</p>
+
+  <ol class="steps">
+    <li>Abre el link que te pasaron, en <b>Safari</b>.</li>
+    <li>Toca el botón de compartir: el cuadradito con la flecha hacia arriba, en la barra de abajo.</li>
+    <li>Desliza hacia abajo en el menú y toca <b>Agregar a la pantalla de inicio</b>.</li>
+    <li>Toca <b>Agregar</b>, arriba a la derecha.</li>
+    <li>Te queda el gatico negro entre tus apps. Ábrela siempre por ahí.</li>
+  </ol>
+
+  <div class="note warn">
+    <b>Por qué importa el orden</b>
+    <p>En el iPhone, la app de la pantalla de inicio guarda sus datos en un lugar
+    distinto del navegador. Si usas el link durante unos días y solo después la instalas,
+    lo que anotaste queda en el navegador y el ícono aparece vacío.</p>
+    <p>Regla simple: <b>instala primero, anota después</b>. Y de ahí en adelante entra
+    siempre por el ícono, nunca por el link.</p>
+  </div>
+</section>
+
+<section id="anotar">
+  <h2><span class="n">3</span> Anotar: el botón verde</h2>
+
+  <div class="note ok">
+    <b>Los primeros tres pasos te los pide la app sola.</b>
+    <p>Al abrirla por primera vez solo vas a ver una tarjeta que dice <b>Empecemos</b>,
+    con tres cosas: decirle cuánta plata tienes, anotar un gasto y anotar un ingreso.
+    Nada más. El resto de la app (el plan, los pagos, las calculadoras) aparece cuando
+    terminas esos tres. Si al principio te pareció mucho, es justo eso lo que se arregló.</p>
+  </div>
+  <p class="lead">Todo lo que hace la app sale de aquí. Es el único hábito que tienes
+     que sostener.</p>
+
+  <p>El botón <span class="plus"><svg viewBox="0 0 24 24"><use href="#ic-plus"/></svg></span>
+     está siempre abajo en el centro. Al tocarlo eliges entre tres cosas:</p>
+
+  <table>
+    <tr><th>Tipo</th><th>Cuándo se usa</th></tr>
+    <tr><td>Gasto</td><td>Plata que se fue y no vuelve: mercado, transporte, un almuerzo.</td></tr>
+    <tr><td>Ingreso</td><td>Plata que entró: sueldo, un trabajo extra, la prima, una venta.</td></tr>
+    <tr><td>Guardar</td><td>Plata que <b>sigue siendo tuya</b>, pero la separaste para no gastarla.</td></tr>
+  </table>
+
+  <h3>El teclado</h3>
+  <p>Escribes el monto con los números grandes. El botón <span class="ui">000</span> te ahorra
+     tres toques: para doscientos mil, tocas <b>2</b>, <b>0</b>, <b>0</b> y luego
+     <span class="ui">000</span>.</p>
+  <p>Después eliges la categoría, y ya. La fecha viene puesta en hoy, y la nota es opcional.</p>
+
+  <h3>«Guardar» no es lo mismo que un gasto</h3>
+  <p>Registra un <b>Guardar</b> solo cuando de verdad separes la plata: la pasas a otra cuenta,
+     la metes a un Bolsillo, la sacas de donde gastas a diario. Si sigue revuelta con el resto,
+     tarde o temprano se va.</p>
+
+  <h3>Si te equivocaste, todo se arregla</h3>
+  <p>No hay nada que quede grabado en piedra. <b>Toca lo que está mal y ahí mismo lo corriges
+     o lo borras.</b></p>
+  <table>
+    <tr><th>Si te equivocaste en…</th><th>Tócalo en…</th></tr>
+    <tr><td>Un gasto o ingreso</td><td>La lista de <b>Movimientos</b>, o el ✓ verde si fue el pago de una cuota</td></tr>
+    <tr><td>Una meta</td><td><b>Plan</b> → <b>Metas</b></td></tr>
+    <tr><td>Una deuda</td><td><b>Plan</b> → <b>Deudas</b>, o el nombre en «Lo que viene»</td></tr>
+    <tr><td>Un pago fijo</td><td><b>Plan</b> → <b>Cuentas</b>, o el nombre en «Lo que viene»</td></tr>
+    <tr><td>Tu saldo</td><td><b>Más</b> → <b>Ajustar mi saldo</b></td></tr>
+  </table>
+  <p>La flechita <b>›</b> al lado de un nombre significa justamente eso: que puedes tocarlo
+     para abrirlo.</p>
+  <p class="muted" style="font-size:14.5px">Si borras una meta que ya tenía plata guardada,
+     esa plata no se pierde: pasa a tu colchón.</p>
+
+  <div class="note ok">
+    <b>Anota en el momento, no el domingo.</b>
+    <p>Pagaste el almuerzo, lo anotas ahí mismo: son cinco segundos. Si lo dejas para el fin
+    de semana, no te vas a acordar, y esa es la razón número uno por la que la gente abandona
+    estas apps.</p>
+  </div>
+</section>
+
+<section id="inicio">
+  <h2><span class="n">4</span> Inicio: qué te está diciendo</h2>
+  <p class="lead">La primera pantalla responde tres preguntas, de arriba hacia abajo.</p>
+
+  <h3>«Tienes ahora»</h3>
+  <p>Es la plata que tienes disponible de verdad, hoy. La app la calcula así: el saldo que
+     le dijiste al principio, más todo lo que has registrado desde entonces.</p>
+  <p>Por eso lo primero que te pregunta es cuánto tienes en la cuenta. Si te lo saltas,
+     la app arranca en cero y las cuentas no van a cuadrar con tu banco.</p>
+  <div class="note ok">
+    <b>Vuelve a ponerlo al día cada tanto.</b>
+    <p>Si un día ves que el número de la app y el de tu banco no coinciden (pasa: se te
+    olvidó anotar algo, o te cobraron algo que no sabías), entra a <b>Más</b> →
+    <b>Ajustar mi saldo</b>, copia el saldo real y listo. De ahí sigue contando desde
+    ese número. No tienes que buscar el error.</p>
+  </div>
+
+  <h3>«Te queda este mes»</h3>
+  <p>Si no le pusiste saldo, en vez de «Tienes ahora» verás esto: lo que entró menos lo
+     que salió en el mes.</p>
+  <p>Lo que entró, menos lo que gastaste, menos lo que guardaste. Es la foto del mes.</p>
+  <p>Debajo te avisa cuánto de eso <b>ya tiene dueño</b>: son tus pagos con fecha que todavía
+     no has hecho. Es plata que está en tu bolsillo pero no es para gastar.</p>
+
+  <h3>«Tu ritmo»</h3>
+  <p>Cuánto puedes gastar por día, libre, hasta fin de mes. Ya le restó los pagos que te faltan,
+     así que es un número en el que sí puedes confiar.</p>
+  <p>Si dice <b>$0</b>, no es un error: significa que con lo que queda apenas alcanzas para
+     los pagos comprometidos.</p>
+
+  <h3>Las pestañas de Movimientos</h3>
+  <p>Arriba hay cinco botoncitos. Cada uno te deja ver una sola cosa, sin ruido:</p>
+  <table>
+    <tr><th>Pestaña</th><th>Qué te muestra</th></tr>
+    <tr><td>Todo</td><td>El resumen del mes, en qué se te fue por categoría,
+        la comparación con el mes pasado, y todo lo que registraste.</td></tr>
+    <tr><td>Gastos</td><td>El resumen, lo que falta por pagar este mes
+        (incluidas las deudas que vencen), y tus gastos.</td></tr>
+    <tr><td>Ingresos</td><td>El resumen y todo lo que te entró.</td></tr>
+    <tr><td>Ahorro</td><td>El resumen, cómo va tu colchón y cada meta con su barra,
+        y lo que has ido guardando.</td></tr>
+    <tr><td>Deudas</td><td>El resumen y <b>todas</b> tus deudas, con su botón de pagar.</td></tr>
+  </table>
+
+  <h3>¿Gasté más o menos que el mes pasado?</h3>
+  <p>Eso está en <b>Movimientos</b>, en la pestaña <b>Todo</b>, en la tarjeta
+     <b>Comparado con…</b> Te muestra los gastos y los ingresos del mes al lado de
+     los del mes anterior.</p>
+  <p>Y lo compara bien: si hoy es 11, mira tus primeros 11 días contra los primeros 11 días
+     del mes pasado. Comparar medio mes contra un mes entero diría que gastaste mucho menos,
+     y sería mentira.</p>
+  <div class="note ok">
+    <b>En verde lo que va bien:</b>
+    <p>gastar menos que el mes pasado, o recibir más. En naranja, al revés.</p>
+  </div>
+
+  <h3>«Lo que viene» y «Tu siguiente paso»</h3>
+  <p>El primero es la lista de lo que vence este mes. El segundo te dice, de todo lo que
+     podrías hacer con tu plata, cuál es el escalón en el que estás parada ahora.</p>
+</section>
+
+<section id="pagos">
+  <h2><span class="n">5</span> Pagos con fecha y avisos</h2>
+  <p class="lead">Esta es la parte que evita los sustos de fin de mes.</p>
+
+  <p>La pantalla <b>Plan</b> también tiene pestañas arriba:</p>
+  <table>
+    <tr><th>Pestaña</th><th>Qué hay ahí</th></tr>
+    <tr><td>Plan</td><td>Cuánto guardar al mes, cómo se reparte tu plata,
+        el orden en que conviene hacer las cosas, y los ajustes.</td></tr>
+    <tr><td>Metas</td><td>Tu colchón y cada meta, con su barra de avance.</td></tr>
+    <tr><td>Deudas</td><td>Todas tus deudas, con su botón de pagar.</td></tr>
+    <tr><td>Cuentas</td><td>Los pagos que se repiten: arriendo, internet, el gimnasio.</td></tr>
+  </table>
+  <p>Las dos que te avisan antes de que venzan son:</p>
+  <ul>
+    <li><b>Cuentas:</b> arriendo, internet, el gimnasio.</li>
+    <li><b>Deudas:</b> la tarjeta, un crédito, o plata que le debes a alguien.</li>
+  </ul>
+  <p>Y cada una puede ser de dos maneras. Al crearla eliges:</p>
+  <table>
+    <tr><th>Tipo</th><th>Para qué sirve</th></tr>
+    <tr><td>Cada mes</td><td>Se repite siempre: el arriendo el 5, la cuota de la tarjeta el 15.
+        Le pones el <b>día del mes</b>.</td></tr>
+    <tr><td>Un solo pago</td><td>Pasa una vez y tiene fecha exacta: <b>la plata que le debes a
+        una amiga</b>, la matrícula, un arreglo. Le pones el <b>día, mes y año</b>.</td></tr>
+  </table>
+
+  <div class="note ok">
+    <b>La plata que le debes a alguien no se te va a olvidar.</b>
+    <p>Si prestaste o te prestaron y hay una fecha, ponla como <b>un solo pago</b>.
+    Si llega el día y no la has pagado, <b>no desaparece</b>: se queda en tu lista del mes
+    siguiente diciéndote hace cuántos días se venció, hasta que la marques como pagada.</p>
+  </div>
+
+  <p>Con eso, la app empieza a trabajar sola:</p>
+  <ul>
+    <li>Te avisa <b>antes</b> de que algo venza, y en rojo si ya se venció.</li>
+    <li>Calcula si te alcanza. Si no, te dice cuánto te falta y <b>cuánto necesitas conseguir
+        o dejar de gastar por día</b> hasta la fecha.</li>
+    <li>Te muestra dónde recortar más rápido, con tus propias categorías.</li>
+    <li>Cuando pagas, tocas <span class="ui">Pagar</span> y queda registrado con un toque.</li>
+  </ul>
+
+  <h3>Dónde ves lo que falta pagar</h3>
+  <p>En tres lugares, y siempre antes de que pase:</p>
+  <ul>
+    <li>En <b>Inicio</b>, en la tarjeta <b>Lo que viene</b>.</li>
+    <li>En <b>Movimientos</b>, arriba de la lista, en un recuadro naranja que dice
+        <b>Previsto · sin pagar</b>. Ahí ves cada cosa con su fecha, aunque todavía
+        no haya salido de tu bolsillo.</li>
+    <li>Y en el resumen del mes, en la línea <b>por pagar</b>.</li>
+  </ul>
+
+  <h3>La línea «por pagar»</h3>
+  <p>Arriba en <b>Movimientos</b>, al lado de <i>entró</i>, <i>gastado</i> y <i>guardado</i>,
+     aparece <b>por pagar</b> en naranja. Es la plata que este mes <b>vas a tener que pagar
+     sí o sí</b> y todavía no has pagado: el arriendo, las cuotas, lo que le debes a alguien.</p>
+  <p>Debajo te dice el total del mes completo, por ejemplo:
+     <i>«Este mes se te van $1.900.000 en total: $250.000 que ya pagaste y $1.650.000 que
+     todavía no»</i>.</p>
+  <p>A medida que vas tocando <b>Pagar</b>, esa plata se pasa sola de <i>por pagar</i>
+     a <i>gastado</i>. Cuando llega a cero, ya no te debe nada el mes.</p>
+  <div class="note ok">
+    <b>Para qué te sirve:</b>
+    <p>para no confundir «me sobró plata» con «todavía no he pagado nada». En la barra de
+    colores, lo que está rayado es justo eso: comprometido, pero aún en tu bolsillo.</p>
+  </div>
+
+  <h3>La pestaña «Deudas»</h3>
+  <p>Arriba en <b>Movimientos</b>, en los botoncitos, hay uno que dice <b>Deudas</b>.
+     Ahí están <b>todas</b> las que hayas registrado, no solo las que vencen este mes:
+     cuánto debes en total, cuánto te cuestan en intereses cada mes, y un botón
+     <span class="ui">Pagar</span> en cada una.</p>
+  <p>Sirve para abonar cuando te llegue plata extra, sin esperar a la fecha. Y cuando
+     una queda en cero, te aparece marcada como <b>¡Pagada!</b> 🐾</p>
+
+  <div class="note ok">
+    <b>Cuando te alcanza, aprovecha el Bolsillo.</b>
+    <p>Si la app te dice que te alcanza, pasa esa plata a un <b>Bolsillo</b> de tu app
+    Bancolombia ahí mismo. Es gratis y lo bueno es que deja de sumar a tu saldo disponible:
+    no la ves, no te la gastas, y llega la fecha con la plata lista.</p>
+  </div>
+
+  <h3>Una cosa sobre las deudas</h3>
+  <p>Cuando registras el pago de una cuota, la app descuenta primero los intereses del mes
+     y baja el saldo con lo que sobra. Por eso el saldo no baja el valor completo de la cuota:
+     así es como funciona de verdad una deuda.</p>
+  <p>Es un estimado. Si vuelves a usar la tarjeta o te cobran algo extra, el saldo real cambia:
+     compáralo con tu extracto cada tanto y corrígelo en la app.</p>
+</section>
+
+<section id="plan">
+  <h2><span class="n">6</span> Plan: cuánto guardar y en qué orden</h2>
+  <p class="lead">Aquí está el consejo, no solo las cuentas.</p>
+
+  <h3>«Cuánto guardar al mes»</h3>
+  <p>La app compara tu meta (20% de lo que ganas, por defecto) con lo que de verdad te sobra,
+     y te muestra <b>el número que sí puedes sostener</b>. Si tu meta no cabe, te lo dice
+     sin rodeos: es mejor guardar poquito todos los meses que prometerte mucho y fallar.</p>
+
+  <h3>«El orden importa»</h3>
+  <p>Es una escalera. No se puede saltar escalones, y la app te muestra en cuál vas:</p>
+  <ol class="steps">
+    <li><b>Colchón anti-susto:</b> un millón guardado y disponible.</li>
+    <li><b>Matar las deudas caras:</b> todo lo que esté por encima del 25% E.A.</li>
+    <li><b>Colchón completo:</b> 3 meses de tus gastos indispensables.</li>
+    <li><b>Tus metas:</b> el viaje, el estudio, lo que estés persiguiendo.</li>
+    <li><b>Largo plazo:</b> recién ahí tiene sentido pensar en invertir.</li>
+  </ol>
+
+  <div class="note bad">
+    <b>Por qué las deudas van antes que invertir</b>
+    <p>Una tarjeta al 28% anual te cuesta más de lo que cualquier inversión legal y segura
+    te va a pagar. Pagarla es, literalmente, el mejor rendimiento que puedes conseguir.
+    Invertir con una deuda cara encima es llenar un balde roto.</p>
+  </div>
+
+  <h3>Metas</h3>
+  <p>Ponles nombre, monto y listo: la app te dice cuántos meses te faltan al ritmo que llevas.
+     Ahorrar «por si acaso» casi nunca funciona; ahorrar «para Cartagena en diciembre», sí.</p>
+</section>
+
+<section id="invertir">
+  <h2><span class="n">7</span> Invertir: las calculadoras</h2>
+  <p class="lead">Nada de esto te dice dónde poner tu plata. Te da con qué decidir.</p>
+
+  <ul>
+    <li><b>¿Cuánto ganaría?</b> Pones un monto, una tasa y un plazo, y te muestra cuánto
+        tendrías. Lo importante es la última línea: la <b>ganancia real</b>, ya descontando
+        la inflación. Si sale en rojo, esa plata está perdiendo valor aunque el número suba.</li>
+    <li><b>Si guardo todos los meses.</b> Sirve para ver que un monto pequeño y constante
+        llega más lejos de lo que parece.</li>
+    <li><b>El 4x1000.</b> Calcula cuánto te cobran al mes según lo que muevas, y te dice
+        si estás por debajo del tope exento.</li>
+  </ul>
+
+  <p>También hay una guía de dónde poner la plata según <b>para cuándo la necesitas</b>
+     (el día a día, el colchón, una meta con fecha, el largo plazo), y una lista de señales
+     de alarma para reconocer una estafa.</p>
+
+  <div class="note warn">
+    <b>Las tasas cambian todo el tiempo.</b>
+    <p>Los números de referencia que ves ahí son de cuando se hizo la app. Antes de decidir
+    algo, confírmalos con la entidad. Y si es una decisión grande, habla con un asesor
+    certificado y vigilado por la Superfinanciera.</p>
+  </div>
+</section>
+
+<section id="aprender">
+  <h2><span class="n">8</span> Aprender: pregúntale lo que sea</h2>
+  <p class="lead">45 respuestas cortas sobre plata en Colombia, con buscador. Funciona sin internet.</p>
+
+  <p>Puedes escribir como hablas. Todas estas encuentran la respuesta correcta:</p>
+  <ul>
+    <li>«no me alcanza la plata»</li>
+    <li>«me conviene un CDT»</li>
+    <li>«cómo salgo de Datacrédito»</li>
+    <li>«tengo muchas deudas, cuál pago primero»</li>
+    <li>«me están ofreciendo 20% mensual»</li>
+    <li>«qué hago con la prima»</li>
+  </ul>
+
+  <p>No importa si escribes con tildes o sin ellas, ni en mayúsculas o minúsculas.
+     También puedes mirar por categorías: lo básico, bancos y cuentas, deudas,
+     ahorro e inversión, trabajo y leyes, hábitos.</p>
+</section>
+
+<section id="copia">
+  <h2><span class="n">9</span> La copia de seguridad</h2>
+  <p class="lead">Lee esta parte aunque te saltes las demás.</p>
+
+  <p>Como tus datos viven solo en tu celular y no en un servidor, nadie los puede espiar
+     — pero tampoco hay nadie que te los devuelva si algo pasa. Por eso la copia.</p>
+
+  <p>Entra a <b>Más</b> → <b>Copia de seguridad</b> y toca
+     <span class="ui">Enviarme la copia por WhatsApp</span>. Te la mandas a ti misma, a un chat
+     contigo o a alguien de confianza. Ese archivo tiene todo lo que anotaste.</p>
+
+  <p>Si algún día cambias de teléfono, se te borran los datos del navegador o pasa cualquier
+     cosa: abres la app nueva, vas a <b>Más</b> → <b>Restaurar</b>, le das ese archivo y
+     vuelve todo tal cual estaba.</p>
+
+  <div class="note ok">
+    <b>No tienes que acordarte.</b>
+    <p>La app te lo recuerda sola cada 15 días con un aviso arriba. Cuando lo veas, hazlo
+    de una: son diez segundos.</p>
+  </div>
+
+  <p class="muted" style="font-size:14.5px">En esa misma pantalla hay una opción más fuerte:
+     <b>Descargar Mi Plata con mis datos</b>. Te baja la app entera con tu información adentro.
+     Si guardas ese archivo en Google Drive, tienes un respaldo completo que se abre en
+     cualquier computador.</p>
+</section>
+
+<section id="trucos">
+  <h2><span class="n">10</span> Para no abandonarla a la semana</h2>
+
+  <h3>El primer mes no te exijas ahorrar</h3>
+  <p>En serio. La meta del primer mes es una sola: <b>anotar todo, sin fallar días</b>.
+     Sin recortar nada, sin sentir culpa. Al final vas a tener tres datos que hoy no tienes:
+     cuánto ganas de verdad, en qué se te va y cuánto podrías guardar sin sufrir.</p>
+
+  <h3>Ponte una hora fija</h3>
+  <p>Si no logras anotar en el momento, ponte una alarma a la misma hora cada noche y
+     registra el día. Lo que no funciona es «el domingo me pongo al día».</p>
+
+  <h3>Un mes malo no borra los buenos</h3>
+  <p>Va a pasar que se te desordene un mes. No intentes reconstruir lo que falta:
+     retoma desde hoy y ya. Lo único que sí hace daño es dejar de mirar los números
+     justo cuando las cosas se ponen difíciles, que es cuando más los necesitas.</p>
+
+  <h3>Prima y cesantías: anótalas con su categoría</h3>
+  <p>En junio y diciembre entra plata que no es parte de tu sueldo normal. Si la anotas
+     como «Salario», la app va a creer que ganas eso todos los meses y tus cuentas se
+     desajustan. Hay categorías propias para las dos.</p>
+
+  <h3>El gato no es solo adorno</h3>
+  <p>Ese gato que anda abajo a la izquierda te acompaña en todas las pestañas y
+     <b>te dice cómo van tus cuentas sin que tengas que leer nada</b>: si está dormido
+     es que hoy no has anotado nada; si se sobresalta es que tienes un pago vencido;
+     si llora es que los números del mes no dan. Cuando todo está en orden se pone a
+     hacer sus cosas solo: se pasea, baila, se mete en su caja. Tócalo si quieres que
+     te diga algo.</p>
+  <p>Si prefieres otro, en <b>Más › Apariencia › Tu gato</b> puedes cambiarle el color:
+     hay seis. No cambia nada de tus cuentas, solo el gato.</p>
+
+  <div class="note ok">
+    <b>Y lo más importante:</b>
+    <p>Esto no se trata de gastar menos en cafés. Se trata de que dejes de adivinar.
+    Cuando ves los números, las decisiones difíciles se vuelven obvias solas.</p>
+  </div>
+</section>
+
+<div class="pawline"><svg><use href="#paw"/></svg><i></i></div>
+
+<a class="volver" href="./">Abrir Mi Plata →</a>
+
+<footer>
+  <p><b>Aviso.</b> Mi Plata es una herramienta educativa y de organización personal.
+  No es asesoría financiera ni de inversión, y no recomienda entidades ni productos
+  específicos. Las cifras que aparecen en la app son referencias públicas de la fecha
+  en que se hizo y cambian con el tiempo: verifícalas antes de tomar una decisión, y
+  consulta a un asesor certificado y vigilado por la Superintendencia Financiera para
+  decisiones importantes.</p>
+</footer>
+
+</div>
+</body>
+</html>

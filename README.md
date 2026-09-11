@@ -70,16 +70,18 @@ WhatsApp*). O app cobra isso sozinho a cada 14 dias.
 
 ## Atualizar o app depois
 
-Substitua o `index.html` e dê push. O service worker serve a versão em cache e
-baixa a nova por trás, então ela recebe a atualização na abertura seguinte.
-Se mudar algum ícone ou o manifest, troque também o nome do cache em `sw.js`
-(`miplata-v1` → `miplata-v2`) para forçar a renovação.
+Substitua o `index.html` e dê push. A página é buscada na rede primeiro, então
+a atualização chega já na primeira abertura; o cache só entra em ação quando
+ela está sem internet.
+Se mudar algum ícone ou o manifest, troque o nome do cache em `sw.js`
+(`miplata-v3` → `miplata-v4`) para forçar a renovação.
 
 ## Arquivos
 
 | arquivo | para quê |
 |---|---|
 | `index.html` | o app inteiro, sem dependência externa |
+| `guia.html` | guia de uso em espanhol, ligado a partir de **Más** no app |
 | `manifest.webmanifest` | nome, cores e ícones do app instalado |
 | `sw.js` | cache para funcionar sem internet |
 | `apple-touch-icon.png` | ícone da tela de início no iPhone (o iOS exige PNG) |
