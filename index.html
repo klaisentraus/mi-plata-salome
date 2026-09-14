@@ -799,7 +799,7 @@ var MES_C = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','
 var S = null;
 var VISTA = { mes: ymHoy(), filtro:'todo', pantalla:'inicio', planTab:'plan' };
 /* sube junto con el número de sw.js, para que las dos cosas digan lo mismo */
-var APP_VER='v32', APP_FECHA='14 de septiembre de 2026';
+var APP_VER='v33', APP_FECHA='14 de septiembre de 2026';
 
 function estadoNuevo(){
   return {
@@ -1380,6 +1380,19 @@ function colchonCardHTML(p, conGato, conBolsillo){
   '</div>';
 }
 
+/* meses que faltan para esa fecha, contando el mes en curso como 1 */
+function mesesHasta(fecha){
+  if(!fecha) return null;
+  var hoy=new Date(), y=+fecha.slice(0,4), m=+fecha.slice(5,7), d=+fecha.slice(8,10);
+  var n=(y-hoy.getFullYear())*12 + (m-(hoy.getMonth()+1));
+  if(d>=hoy.getDate()) n+=1;          /* si el día todavía no llegó, ese mes cuenta */
+  return n;
+}
+function metaFechaTxt(fecha){
+  var p=fecha.split('-');
+  return (+p[2])+' de '+MESES[+p[1]-1]+(p[0]!==String(new Date().getFullYear())?' de '+p[0]:'');
+}
+
 function metasCardHTML(p){
   return '<div class="card"><div class="row"><h3 style="margin:0">Mis metas</h3>'+
     '<button class="chip" onclick="editarMeta()">+ Nueva</button></div>'+
@@ -1388,12 +1401,37 @@ function metasCardHTML(p){
       var falta=Math.max(0,g.objetivo-ah);
       var porMes = p.sugerido>0 ? p.sugerido : 0;
       var eta = (falta>0 && porMes>0) ? Math.ceil(falta/porMes) : 0;
+      /* con fecha, la meta deja de ser «algún día» y se puede hacer la cuenta */
+      var mf = g.fecha ? mesesHasta(g.fecha) : null;
+      var nota='';
+      if(g.fecha && falta>0){
+        if(mf<=0){
+          nota='<div class="s12 mt8" style="color:var(--out)">Se pasó la fecha ('+
+               metaFechaTxt(g.fecha)+') y te faltan <b>'+money(falta)+'</b>. '+
+               'Tócala para mover la fecha o bajar el monto.</div>';
+        }else{
+          var necesita=Math.ceil(falta/mf);
+          var alcanza = porMes>0 && porMes>=necesita;
+          nota='<div class="s12 mt8" style="color:var('+(alcanza?'--accent':'--warn')+')">'+
+               'Para llegar '+(mf===1?'este mes':'en '+mf+' meses')+' ('+metaFechaTxt(g.fecha)+') '+
+               'necesitas <b>'+money(necesita)+' al mes</b>.'+
+               (porMes>0
+                 ? (alcanza
+                     ? ' Al ritmo que llevas, llegas.'
+                     : ' Al ritmo que llevas ('+money(porMes)+' al mes) llegarías en '+
+                       eta+' mes'+(eta>1?'es':'')+'.')
+                 : '')+'</div>';
+        }
+      }
       return '<div class="goal" onclick="editarMeta(\''+g.id+'\')">'+
         '<div class="hd"><span class="e">'+(g.emoji||'🎯')+'</span><span class="nm">'+esc(g.nombre)+' <span class="ed">›</span></span>'+
         '<span class="pc tnum">'+Math.round(pc)+'%</span></div>'+
         '<div class="bar"><i class="c" style="width:'+pc+'%"></i></div>'+
         '<div class="ft"><span class="tnum">'+money(ah)+' de '+money(g.objetivo)+'</span>'+
-        '<span>'+(falta<=0?'¡Lograda! 🐾':(eta?'≈ '+eta+' mes'+(eta>1?'es':''):'Faltan '+money(falta)))+'</span></div>'+
+        '<span>'+(falta<=0?'¡Lograda! 🐾'
+                 :(g.fecha && mf>0 ? metaFechaTxt(g.fecha)
+                 :(eta?'≈ '+eta+' mes'+(eta>1?'es':''):'Faltan '+money(falta))))+'</span></div>'+
+        nota+
       '</div>'; }).join('')
       : '<div class="s13 muted mt8">Ahorrar «porque sí» casi nunca funciona. Ponle nombre: un viaje, un computador, el semestre, mudarte.</div>')+
   '</div>';
@@ -2868,6 +2906,10 @@ function editarMeta(id){
     '<input class="f" id="mNom" placeholder="Ej: viaje a Cartagena" value="'+esc(g?g.nombre:'')+'">'+
     '<label class="f">¿Cuánto necesitas?</label>'+
     '<input class="f tnum" id="mObj" inputmode="numeric" placeholder="$0" value="'+(g?fmtNum(g.objetivo):'')+'" oninput="fmtIn(this)">'+
+    '<label class="f">¿Para cuándo la quieres? (opcional)</label>'+
+    '<input class="f" type="date" id="mFecha" value="'+(g&&g.fecha?g.fecha:'')+'">'+
+    '<div class="s12 faint mt8">Con fecha, Mi Plata te dice cuánto tienes que guardar al mes '+
+    'para llegar, y te avisa si al ritmo que llevas no da. Sin fecha también sirve.</div>'+
     '<label class="f">Elige un ícono</label>'+
     '<div class="catgrid" id="mEmo">'+EMOJIS.map(function(x){
       return '<button class="'+(x===e?'on':'')+'" data-e="'+x+'" onclick="pickEmoji(this)" style="min-height:48px">'+
@@ -2888,8 +2930,9 @@ function guardarMeta(id){
   var emo=sel?sel.dataset.e:'🎯';
   if(!nom){ toast('Ponle un nombre'); return; }
   if(obj<=0){ toast('¿Cuánto necesitas?'); return; }
-  if(id){ S.metas.forEach(function(g){ if(g.id===id){ g.nombre=nom; g.objetivo=obj; g.emoji=emo; } }); }
-  else S.metas.push({id:uid(), nombre:nom, objetivo:obj, emoji:emo, creado:new Date().toISOString()});
+  var fch=(document.getElementById('mFecha')||{}).value||'';
+  if(id){ S.metas.forEach(function(g){ if(g.id===id){ g.nombre=nom; g.objetivo=obj; g.emoji=emo; g.fecha=fch; } }); }
+  else S.metas.push({id:uid(), nombre:nom, objetivo:obj, emoji:emo, fecha:fch, creado:new Date().toISOString()});
   cerrarSheet(); pintarTodo(); toast(id?'Meta actualizada ✓':'Meta creada 🎯');
 }
 function borrarMeta(id){
