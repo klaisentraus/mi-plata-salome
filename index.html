@@ -2254,7 +2254,10 @@ function guardarMov(){
       if(x.id===ADD.id){
         if(x.ref) ajustarDeuda(x.ref, +(x.ab||0));            /* revierte el abono anterior */
         x.tipo=ADD.tipo; x.monto=m; x.cat=ADD.cat; x.destino=ADD.destino; x.fecha=ADD.fecha; x.nota=ADD.nota.trim();
-        if(x.ref){ x.ab=abonoDe(x.ref,m); ajustarDeuda(x.ref, -x.ab); }
+        if(x.ref){
+          x.ab = x.saldada ? Math.max(0, (deudaDe(x.ref)||{}).saldo||0) : abonoDe(x.ref,m);
+          ajustarDeuda(x.ref, -x.ab);
+        }
       }
     });
     toast('Cambios guardados ✓');
@@ -2263,7 +2266,12 @@ function guardarMov(){
             fecha:ADD.fecha, nota:ADD.nota.trim(), creado:new Date().toISOString()};
     if(ADD.ref){
       nm.ref=ADD.ref; nm.refMes=ADD.refMes;
-      nm.ab=abonoDe(ADD.ref,m);
+      /* si la está soltando entera, la deuda se cierra completa aunque pague menos:
+         la diferencia es el descuento por pagar todo de una */
+      if(ADD.saldar){
+        nm.saldada=true;
+        nm.ab=Math.max(0, (deudaDe(ADD.ref)||{}).saldo||0);
+      }else nm.ab=abonoDe(ADD.ref,m);
       ajustarDeuda(ADD.ref, -nm.ab);
     }
     S.mov.push(nm);
@@ -2542,8 +2550,8 @@ function deudasHTML(){
     '<b class="tnum" style="font-size:17px;color:'+(total>0?'var(--out)':'var(--accent)')+'">'+money(total)+'</b></div>'+
     (intTot>0
       ? '<div class="s12 faint" style="margin:4px 0 2px">Solo en intereses te cuestan '+money(intTot)+' al mes. '+
-        'Págalas de mayor a menor tasa.</div>'
-      : '<div class="s12 faint" style="margin:4px 0 2px">Tócalas para editarlas o borrarlas.</div>')+
+        'Págalas de mayor a menor tasa. Tócalas para pagar una entera de una vez.</div>'
+      : '<div class="s12 faint" style="margin:4px 0 2px">Tócalas para editarlas o para pagarlas de una.</div>')+
     filas+
     (intTot>0
       ? '<div class="s12 faint mt12">De cada cuota que registras, Mi Plata descuenta primero los intereses '+
@@ -2596,8 +2604,28 @@ function pagarCompromiso(id, ym, mesRef){
 }
 
 /* de la cuota, lo que de verdad baja la deuda (el resto son intereses) */
+/* lo que costaría soltarla hoy: en las de cuotas el interés ya está dentro */
+function totalDeuda1(d){
+  if(!d || !((d.saldo||0)>0)) return 0;
+  return Math.round((d.saldo||0) + (d.tipo==='cuotas' ? 0 : interesMensual(d)));
+}
+/* pagarla toda de una: abre el teclado con el total y amarrado a la deuda */
+function saldarDeuda(id){
+  var d=deudaDe(id); if(!d) return;
+  var total=totalDeuda1(d);
+  if(total<=0){ toast('Esa deuda ya está en cero'); return; }
+  var c=compromisos(ymHoy()).filter(function(x){ return x.id===id && !x.pagado; })[0];
+  ADD={tipo:'out', monto:String(total), cat:'deudas', destino:'colchon',
+       fecha:hoyISO(), nota:d.nombre, id:null, retiro:false, saldar:true,
+       ref:d.id, refMes:c?c.mesRef:null, refNombre:d.nombre};
+  renderAdd();
+}
+
 function abonoDe(id, monto){
   var d=deudaDe(id); if(!d) return 0;
+  /* en una compra a plazos los intereses ya vienen dentro de la cuota: si aquí se
+     los volviéramos a descontar, el saldo nunca llegaría a cero */
+  if(d.tipo==='cuotas') return Math.max(0, monto);
   return Math.max(0, monto-interesMensual(d));
 }
 function ajustarDeuda(id, delta){
@@ -2752,7 +2780,8 @@ function editarDeuda(id){
     '<label class="f">Tasa de interés (% E.A.)</label>'+
     '<input class="f tnum" id="dTasa" inputmode="decimal" placeholder="Ej: 28" value="'+(d?d.tasa:'')+'">'+
     '<div class="s12 faint mt8">Aparece en el extracto. Si no la encuentras: las tarjetas de crédito en Colombia suelen estar entre 25% y 30% E.A.; '+
-    'un gota a gota está muchísimo más arriba.</div>'+
+    'un gota a gota está muchísimo más arriba. En una compra <b>en cuotas</b> los intereses ya '+
+    'vienen dentro de cada cuota, así que la tasa aquí es solo para saber qué tan cara es.</div>'+
     '<label class="f">¿Cómo se paga?</label>'+
     segTipo(d&&d.tipo?d.tipo:'mensual', true)+
     '<div id="campoMensual"'+(!d||d.tipo==='mensual'?'':' hidden')+'>'+
@@ -2779,7 +2808,16 @@ function editarDeuda(id){
     '</div>'+
     '<div class="s12 faint mt8">Con la fecha puesta, Mi Plata te avisa antes de que venza y te dice si te alcanza.</div>'+
     '<button class="btn mt20" onclick="guardarDeuda(\''+(id||'')+'\')">'+(d?'Guardar':'Agregar deuda')+'</button>'+
-    (d?'<button class="btn ghost mt12" style="color:var(--danger)" onclick="borrarDeuda(\''+id+'\')">Ya la pagué / eliminar</button>':'');
+    /* soltarla de una: queda registrada como gasto, no borrada */
+    (d && d.tipo!=='unica' && totalDeuda1(d)>0
+      ? '<button class="btn soft mt12" onclick="saldarDeuda(\''+id+'\')">Pagarla toda de una · '+
+          money(totalDeuda1(d))+'</button>'+
+        '<div class="s12 faint mt8">Queda registrada como un gasto de hoy y la deuda se cierra. '+
+        'Si te dan descuento por pagar todo junto, cambia el monto en el teclado antes de guardar.</div>'
+      : '')+
+    (d?'<button class="btn ghost mt12" style="color:var(--danger)" onclick="borrarDeuda(\''+id+'\')">Eliminar esta deuda</button>'+
+       '<div class="s12 faint mt8">Eliminar solo la borra de la lista, sin registrar ningún gasto. '+
+       'Úsalo si la anotaste por error.</div>':'');
   sheet(d?'Editar deuda':'Nueva deuda', h);
 }
 function guardarDeuda(id){
