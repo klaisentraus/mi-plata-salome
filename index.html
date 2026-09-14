@@ -2292,6 +2292,21 @@ function borrarMov(id){
    PAGOS CON FECHA — cuotas de deuda y gastos fijos que vencen
    ========================================================================= */
 function fechaDe(ym,dia){ return ym+'-'+pad(Math.min(Math.max(1,dia||1), diasEnMes(ym))); }
+/* el mes en que cae la cuota k de una deuda a plazos (k=0 es la primera) */
+function mesCuota(desde, k){
+  var y=+desde.slice(0,4), m=+desde.slice(5,7)-1+k;
+  y+=Math.floor(m/12); m=((m%12)+12)%12;
+  return y+'-'+pad(m+1);
+}
+/* cuántas cuotas lleva pagadas y cuál sigue (-1 si ya no queda ninguna) */
+function estadoCuotas(d){
+  var pagadas=0, sig=-1;
+  for(var k=0;k<(d.n||0);k++){
+    if(pagoDe(d.id, mesCuota(d.fecha,k))) pagadas++;
+    else if(sig<0) sig=k;
+  }
+  return {pagadas:pagadas, sig:sig};
+}
 function deudaDe(id){ return S.deudas.filter(function(d){ return d.id===id; })[0]; }
 
 /* el movimiento que salda ese compromiso en ese mes, si existe */
@@ -2321,6 +2336,23 @@ function compromisos(ym){
     }
   }
   S.deudas.forEach(function(d){
+    if((d.saldo||0)<=0) return;             /* ya está pagada: no vuelve a pedir plata */
+    if(d.tipo==='cuotas'){
+      if(!d.fecha || !(d.n>0)) return;
+      var dia=+d.fecha.slice(8,10);
+      for(var k=0;k<d.n;k++){
+        var mes=mesCuota(d.fecha,k);
+        /* cada cuota vive en su mes; si se pasó y sigue sin pagar, se arrastra
+           al mes actual para que no se le pierda */
+        if(mes!==ym && !(esActual && mes<ym && !pagoDe(d.id,mes))) continue;
+        var mo=Math.min(d.cuota||0, d.saldo||0);
+        if(!(mo>0)) continue;
+        out.push({id:d.id, nombre:d.nombre, monto:mo, tipo:'deuda', cat:'deudas',
+                  unica:false, cuotaN:k+1, cuotasTot:d.n,
+                  fecha:fechaDe(mes,dia), mesRef:mes, dia:dia});
+      }
+      return;
+    }
     /* pago único: lo que debe pagar es todo lo que debe; así se ajusta solo
        después de un abono parcial */
     agregar(d,'deuda','deudas', d.tipo==='unica' ? (d.saldo||0) : (d.cuota||0));
@@ -2396,11 +2428,14 @@ function compHTML(c, ym){
   return '<div class="pend'+(c.pagado?' ok':'')+'">'+
     '<div class="pd" onclick="'+abrir+'"><div class="nm">'+esc(c.nombre)+' <span class="ed">›</span></div>'+
     '<div class="dt" style="color:'+col+'">'+etq+
-      (c.tipo==='deuda' ? (c.unica?' · préstamo':' · cuota') : '')+'</div></div>'+
+      (c.tipo==='deuda'
+        ? (c.unica ? ' · préstamo'
+          : (c.cuotasTot ? ' · cuota '+c.cuotaN+' de '+c.cuotasTot : ' · cuota'))
+        : '')+'</div></div>'+
     '<div class="pa tnum">'+money(c.monto)+'</div>'+
     (c.pagado
       ? '<button class="pb done" onclick="editarMov(\''+c.mov.id+'\')" aria-label="Ver">✓</button>'
-      : '<button class="pb" onclick="pagarCompromiso(\''+c.id+'\',\''+ym+'\')">Pagar</button>')+
+      : '<button class="pb" onclick="pagarCompromiso(\''+c.id+'\',\''+ym+'\',\''+c.mesRef+'\')">Pagar</button>')+
   '</div>';
 }
 
@@ -2480,6 +2515,15 @@ function deudasHTML(){
       sub='Un solo pago · '+(dd<0 ? 'venció hace '+Math.abs(dd)+' día'+(Math.abs(dd)>1?'s':'')
             : (dd===0?'vence hoy':'vence el '+(+p[2])+' de '+MESES[+p[1]-1]));
     }
+    else if(d.tipo==='cuotas' && d.fecha && d.n>0){
+      var ec=estadoCuotas(d);
+      if(ec.sig<0) sub=d.n+' cuotas · todas pagadas';
+      else{
+        var fS=fechaDe(mesCuota(d.fecha,ec.sig), +d.fecha.slice(8,10)).split('-');
+        sub='Cuota '+(ec.sig+1)+' de '+d.n+' · '+money(d.cuota||0)+
+            ' el '+(+fS[2])+' de '+MESES[+fS[1]-1];
+      }
+    }
     else if(d.cuota>0 && d.dia>0) sub='Cuota '+money(d.cuota)+' el día '+d.dia;
     else sub='Sin fecha puesta · tócala para ponerle una';
     if(!pagada && (d.tasa||0)>0) sub+=' · '+String(d.tasa).replace('.',',')+'% E.A.';
@@ -2540,8 +2584,9 @@ function pendMesHTML(ym){
 }
 
 /* registrar el pago: abre el teclado ya lleno y amarrado al compromiso */
-function pagarCompromiso(id, ym){
-  var c=compromisos(ym).filter(function(x){ return x.id===id; })[0];
+function pagarCompromiso(id, ym, mesRef){
+  var l=compromisos(ym).filter(function(x){ return x.id===id && (!mesRef || x.mesRef===mesRef); });
+  var c=l.filter(function(x){ return !x.pagado; })[0] || l[0];
   if(!c) return;
   ADD={tipo:'out', monto:String(Math.round(c.monto)), cat:c.cat, destino:'colchon',
        /* si ya se venció, la plata sale hoy, no en la fecha en que debía salir */
@@ -2563,9 +2608,10 @@ function ajustarDeuda(id, delta){
 }
 
 /* mensual o pago unico: lo mismo sirve para una deuda y para un gasto fijo */
-function segTipo(t){
+function segTipo(t, conCuotas){
   return '<div class="seg" id="tipoSeg">'+
-    [['mensual','Cada mes'],['unica','Un solo pago']].map(function(x){
+    (conCuotas ? [['mensual','Cada mes'],['cuotas','En cuotas'],['unica','Un solo pago']]
+               : [['mensual','Cada mes'],['unica','Un solo pago']]).map(function(x){
       return '<button data-t="'+x[0]+'" class="'+(t===x[0]?'on':'')+'" '+
              'onclick="tipoComp(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+
   '</div>';
@@ -2575,9 +2621,21 @@ function tipoComp(t){
   [].forEach.call(seg.querySelectorAll('button'), function(b){
     b.classList.toggle('on', b.getAttribute('data-t')===t);
   });
-  var m=document.getElementById('campoMensual'), u=document.getElementById('campoUnica');
+  var m=document.getElementById('campoMensual'), u=document.getElementById('campoUnica'),
+      q=document.getElementById('campoCuotas');
   if(m) m.hidden = (t!=='mensual');
   if(u) u.hidden = (t!=='unica');
+  if(q) q.hidden = (t!=='cuotas');
+  calcCuota();
+}
+/* muestra de cuánto queda cada cuota mientras ella escribe */
+function calcCuota(){
+  var av=document.getElementById('avisoCuota'); if(!av) return;
+  var sal=unfmt((document.getElementById('dSal')||{}).value||0);
+  var n=parseInt(String((document.getElementById('dN')||{}).value||'').replace(/[^\d]/g,''),10)||0;
+  av.innerHTML = (sal>0 && n>1)
+    ? 'Serían <b>'+n+' cuotas de '+money(Math.round(sal/n))+'</b>.'
+    : 'Divide lo que debes entre el número de cuotas.';
 }
 function tipoCompActual(){
   var b=document.querySelector('#tipoSeg button.on');
@@ -2696,16 +2754,26 @@ function editarDeuda(id){
     '<div class="s12 faint mt8">Aparece en el extracto. Si no la encuentras: las tarjetas de crédito en Colombia suelen estar entre 25% y 30% E.A.; '+
     'un gota a gota está muchísimo más arriba.</div>'+
     '<label class="f">¿Cómo se paga?</label>'+
-    segTipo(d&&d.tipo==='unica'?'unica':'mensual')+
-    '<div id="campoMensual"'+(d&&d.tipo==='unica'?' hidden':'')+'>'+
+    segTipo(d&&d.tipo?d.tipo:'mensual', true)+
+    '<div id="campoMensual"'+(!d||d.tipo==='mensual'?'':' hidden')+'>'+
       '<label class="f">Cuota mensual (opcional)</label>'+
       '<input class="f tnum" id="dCuota" inputmode="numeric" placeholder="$0" value="'+(d&&d.cuota?fmtNum(d.cuota):'')+'" oninput="fmtIn(this)">'+
       '<label class="f">¿Qué día del mes vence?</label>'+
       '<input class="f tnum" id="dDia" inputmode="numeric" placeholder="Ej: 15" value="'+(d&&d.dia?d.dia:'')+'">'+
     '</div>'+
+    '<div id="campoCuotas"'+(d&&d.tipo==='cuotas'?'':' hidden')+'>'+
+      '<label class="f">¿En cuántas cuotas?</label>'+
+      '<input class="f tnum" id="dN" inputmode="numeric" placeholder="Ej: 3" value="'+
+        (d&&d.n?d.n:'')+'" oninput="calcCuota()">'+
+      '<div class="s12 faint mt8" id="avisoCuota">Divide lo que debes entre el número de cuotas.</div>'+
+      '<label class="f">¿Cuándo pagas la primera?</label>'+
+      '<input class="f" type="date" id="dPrimera" value="'+(d&&d.tipo==='cuotas'&&d.fecha?d.fecha:'')+'">'+
+      '<div class="s12 faint mt8">Las demás caen el mismo día de los meses siguientes. '+
+      'Cada una aparece sola en su mes, con su número: <b>cuota 2 de 3</b>.</div>'+
+    '</div>'+
     '<div id="campoUnica"'+(d&&d.tipo==='unica'?'':' hidden')+'>'+
       '<label class="f">¿Qué día tienes que pagarla?</label>'+
-      '<input class="f" type="date" id="dFecha" value="'+(d&&d.fecha?d.fecha:'')+'">'+
+      '<input class="f" type="date" id="dFecha" value="'+(d&&d.tipo==='unica'&&d.fecha?d.fecha:'')+'">'+
       '<div class="s12 faint mt8">Ese día se paga <b>todo lo que debes</b>, así que no hay que '+
       'poner el monto otra vez. Va a seguir apareciendo hasta que la pagues, aunque se pase de mes.</div>'+
     '</div>'+
@@ -2720,15 +2788,22 @@ function guardarDeuda(id){
   var tasa=+String(document.getElementById('dTasa').value||'').replace(',','.')||0;
   if(!nom){ toast('Ponle un nombre'); return; }
   if(sal<=0){ toast('¿Cuánto debes?'); return; }
-  var tp=tipoCompActual(), cuo=0, dia=0, fch='';
+  var tp=tipoCompActual(), cuo=0, dia=0, fch='', n=0;
   if(tp==='unica'){
     fch=(document.getElementById('dFecha')||{}).value||'';
     if(!fch){ toast('¿Qué día la tienes que pagar?'); return; }
+  }else if(tp==='cuotas'){
+    n=parseInt(String((document.getElementById('dN')||{}).value||'').replace(/[^\d]/g,''),10)||0;
+    fch=(document.getElementById('dPrimera')||{}).value||'';
+    if(n<2){ toast('¿En cuántas cuotas? Pon 2 o más'); return; }
+    if(!fch){ toast('¿Cuándo pagas la primera cuota?'); return; }
+    cuo=Math.round(sal/n);
+    dia=+fch.slice(8,10);
   }else{
     cuo=unfmt((document.getElementById('dCuota')||{}).value||0);
     dia=Math.max(0, Math.min(31, parseInt(String((document.getElementById('dDia')||{}).value||'').replace(/[^\d]/g,''),10)||0));
   }
-  var campos={nombre:nom, saldo:sal, tasa:tasa, cuota:cuo, dia:dia, tipo:tp, fecha:fch};
+  var campos={nombre:nom, saldo:sal, tasa:tasa, cuota:cuo, dia:dia, tipo:tp, fecha:fch, n:n};
   if(id){ S.deudas.forEach(function(x){ if(x.id===id){ for(var k in campos) x[k]=campos[k]; } }); }
   else { campos.id=uid(); S.deudas.push(campos); }
   cerrarSheet(); pintarTodo(); toast('Listo ✓');
