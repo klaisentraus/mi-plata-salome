@@ -804,7 +804,7 @@ function estadoNuevo(){
     v:1, updatedAt:new Date().toISOString(),
     perfil:{ nombre:'Salomé', ingresoEsperado:0, onboarded:false,
              saldoInicial:0, ahorroInicial:0, saldoDesde:null },
-    mov:[], metas:[], deudas:[], fijos:[],
+    mov:[], metas:[], deudas:[], fijos:[], cobros:[],
     ajustes:{ metaAhorroPct:20, colchonMeses:3, inflacion:REF.inflacion, tema:'auto', gato:0,
               ultimoRespaldo:null, movsDesdeRespaldo:0 }
   };
@@ -1581,7 +1581,7 @@ function pintarPlan(){
 
   /* subpestañas: el plan es largo, así cada cosa vive en su propio lugar */
   out += '<div class="chips">'+
-    [['plan','Plan'],['metas','Metas'],['deudas','Deudas'],['cuentas','Cuentas']].map(function(f){
+    [['plan','Plan'],['metas','Metas'],['deudas','Deudas'],['cuentas','Cuentas'],['cobrar','Por cobrar']].map(function(f){
       return '<button class="chip'+(tab===f[0]?' on':'')+'" onclick="VISTA.planTab=\''+f[0]+'\';pintarPlan();window.scrollTo(0,0)">'+f[1]+'</button>';
     }).join('')+'</div>';
 
@@ -1591,6 +1591,8 @@ function pintarPlan(){
     out += deudasHTML();
   } else if(tab==='cuentas'){
     out += fijosCardHTML();
+  } else if(tab==='cobrar'){
+    out += cobrosCardHTML();
   } else {
   /* sin ingreso no se puede calcular el plan, pero lo que ella ya registro
      tiene que seguir a la vista: si no, no lo puede corregir ni borrar */
@@ -2089,6 +2091,7 @@ function aplicarRestaurado(o){
   S={ v:1, updatedAt:new Date().toISOString(),
       perfil:Object.assign(base.perfil, o.perfil||{}),
       mov:o.mov||[], metas:o.metas||[], deudas:o.deudas||[], fijos:o.fijos||[],
+      cobros:o.cobros||[],
       ajustes:Object.assign(base.ajustes, o.ajustes||{}) };
   guardar(); aplicarTema(); ir('inicio');
   toast('Datos restaurados ✓ ('+S.mov.length+' movimientos)');
@@ -2264,6 +2267,7 @@ function guardarMov(){
   }else{
     var nm={id:uid(), tipo:ADD.tipo, monto:m, cat:ADD.cat, destino:ADD.destino,
             fecha:ADD.fecha, nota:ADD.nota.trim(), creado:new Date().toISOString()};
+    if(ADD.refc){ nm.refc=ADD.refc; nm.refcMes=ADD.refcMes; }
     if(ADD.ref){
       nm.ref=ADD.ref; nm.refMes=ADD.refMes;
       /* si la está soltando entera, la deuda se cierra completa aunque pague menos:
@@ -2384,6 +2388,46 @@ function compromisos(ym){
   return out;
 }
 
+/* el movimiento que registra ese cobro en ese mes, si existe */
+function cobroDe(id, ym){
+  var r=null;
+  S.mov.forEach(function(m){ if(m.refc===id && m.refcMes===ym) r=m; });
+  return r;
+}
+/* lo que espera recibir en ese mes: sueldos, trabajos, y lo que le deben */
+function cobrosDe(ym){
+  var esActual=(ym===ymHoy()), out=[], hoy0=new Date(); hoy0.setHours(0,0,0,0);
+  S.cobros.forEach(function(c){
+    if(!(c.monto>0)) return;
+    if(c.tipo==='unica'){
+      if(!c.fecha) return;
+      var mesF=c.fecha.slice(0,7);
+      /* si ya pasó la fecha y no ha entrado, se arrastra: es plata que le deben */
+      if(mesF!==ym && !(esActual && mesF<ym && !cobroDe(c.id,mesF))) return;
+      out.push({id:c.id, nombre:c.nombre, monto:c.monto, dequien:c.dequien||'',
+                unica:true, fecha:c.fecha, mesRef:mesF, dia:+c.fecha.slice(8,10)});
+    }else{
+      if(!(c.dia>0)) return;
+      out.push({id:c.id, nombre:c.nombre, monto:c.monto, dequien:c.dequien||'',
+                unica:false, fecha:fechaDe(ym,c.dia), mesRef:ym, dia:c.dia});
+    }
+  });
+  out.forEach(function(c){
+    var mv=cobroDe(c.id, c.mesRef);
+    c.recibido=!!mv; c.mov=mv;
+    var p=c.fecha.split('-');
+    c.dias=Math.round((new Date(+p[0],+p[1]-1,+p[2]) - hoy0)/86400000);
+    if(c.recibido)              c.estado='recibido';
+    else if(c.mesRef<ymHoy())   c.estado='atrasado';
+    else if(c.mesRef>ymHoy())   c.estado='futuro';
+    else if(c.dias<0)           c.estado='atrasado';
+    else if(c.dias<=5)          c.estado='proximo';
+    else                        c.estado='pendiente';
+  });
+  out.sort(function(a,b){ return (a.recibido?1:0)-(b.recibido?1:0) || a.fecha.localeCompare(b.fecha); });
+  return out;
+}
+
 /* ¿me alcanza para lo que viene? */
 function prevision(ym){
   ym=ym||ymHoy();
@@ -2394,16 +2438,24 @@ function prevision(ym){
   /* si ya configuro su saldo, lo que tiene de verdad; si no, solo el neto del mes */
   var sa=saldoActual();
   var yaTengo=(sa===null) ? (r.ing-r.gas-r.aho) : sa;
-  /* al principio del mes el sueldo aún no ha caído: contarlo evita la falsa alarma */
-  var refIng=S.perfil.ingresoEsperado || base().ing || 0;
-  var porEntrar=Math.max(0, refIng-r.ing);
+  /* al principio del mes el sueldo aún no ha caído: contarlo evita la falsa alarma.
+     Si ella ya dijo qué espera recibir, se usa eso en vez de adivinar. */
+  var cobros=cobrosDe(ym), pendC=cobros.filter(function(c){ return !c.recibido; });
+  var porCobrar=pendC.reduce(function(a,c){ return a+c.monto; },0);
+  var porEntrar;
+  if(S.cobros.length){
+    porEntrar=porCobrar;
+  }else{
+    var refIng=S.perfil.ingresoEsperado || base().ing || 0;
+    porEntrar=Math.max(0, refIng-r.ing);
+  }
   var disponible=yaTengo+porEntrar;
   var hoyD=new Date().getDate();
   var prox=pend.length ? pend.slice().sort(function(a,b){ return a.dia-b.dia; })[0] : null;
   var dias=prox ? Math.max(1, prox.dia-hoyD) : 0;
   var falta=porPagar-disponible;
   return {lista:lista, pend:pend, porPagar:porPagar, disponible:disponible, falta:falta,
-          yaTengo:yaTengo, porEntrar:porEntrar,
+          yaTengo:yaTengo, porEntrar:porEntrar, cobros:cobros, pendC:pendC, porCobrar:porCobrar,
           prox:prox, dias:dias, porDia:(falta>0&&dias>0)?falta/dias:0,
           vencidos:pend.filter(function(c){ return c.estado==='vencido'; })};
 }
@@ -2458,7 +2510,10 @@ function pintarProximos(){
       '<div class="btnrow mt12">'+
         '<button class="btn ghost sm" onclick="editarFijo()">+ Gasto fijo</button>'+
         '<button class="btn ghost sm" onclick="editarDeuda()">+ Deuda</button>'+
+        '<button class="btn ghost sm" onclick="editarCobro()">+ Me van a pagar</button>'+
       '</div></div>';
+    if(S.cobros.length) box.innerHTML='<div class="card"><h3>Lo que va a entrar</h3>'+
+      cobrosDe(ymHoy()).map(function(c){ return cobroHTML(c, ymHoy()); }).join('')+'</div>';
     return;
   }
 
@@ -2489,12 +2544,20 @@ function pintarProximos(){
 
   var pagados=p.lista.filter(function(c){ return c.pagado; })
                      .reduce(function(a,c){ return a+c.monto; },0);
+  /* lo que va a entrar va aquí mismo: es la otra mitad de «¿me alcanza?» */
+  var entra = p.cobros.length
+    ? '<div class="s12 faint mt16" style="border-top:1px solid var(--line);padding-top:12px">'+
+      (p.porCobrar>0 ? 'Todavía esperas <b class="in">'+money(p.porCobrar)+'</b> este mes.'
+                     : 'Ya entró todo lo que esperabas este mes.')+'</div>'+
+      p.cobros.map(function(c){ return cobroHTML(c, ymHoy()); }).join('')
+    : '';
   box.innerHTML='<div class="card"><div class="row"><h3 style="margin:0">Lo que viene</h3>'+
     '<button class="chip" onclick="editarFijo()">+ Pago fijo</button></div>'+
     '<div class="s13 muted mt8">'+money(p.porPagar+pagados)+' en pagos con fecha este mes'+
     (pagados>0?' · ya pagaste '+money(pagados):'')+'</div>'+
     '<div class="mt12">'+av+'</div>'+
     p.lista.map(function(c){ return compHTML(c, ymHoy()); }).join('')+
+    entra+
   '</div>';
 }
 
@@ -2601,6 +2664,23 @@ function pagarCompromiso(id, ym, mesRef){
        fecha:(c.fecha>hoyISO()?c.fecha:hoyISO()), nota:c.nombre, id:null, retiro:false,
        ref:c.id, refMes:c.mesRef, refNombre:c.nombre, refDia:c.dia, refTipo:c.tipo};
   renderAdd();
+}
+
+/* marcar que ya entró: abre el teclado como ingreso y amarrado al cobro */
+function recibirCobro(id, ym, mesRef){
+  var l=cobrosDe(ym).filter(function(x){ return x.id===id && (!mesRef || x.mesRef===mesRef); });
+  var c=l.filter(function(x){ return !x.recibido; })[0] || l[0];
+  if(!c) return;
+  ADD={tipo:'in', monto:String(Math.round(c.monto)), cat:cobroCat(c), destino:'colchon',
+       /* si se atrasó, la plata entra hoy, no el día en que debía entrar */
+       fecha:(c.fecha>hoyISO()?c.fecha:hoyISO()), nota:c.nombre, id:null, retiro:false,
+       refc:c.id, refcMes:c.mesRef, refcNombre:c.nombre};
+  renderAdd();
+}
+function cobroDatos(id){ return S.cobros.filter(function(c){ return c.id===id; })[0]; }
+function cobroCat(c){
+  var d=cobroDatos(c.id);
+  return (d && d.cat) ? d.cat : (c.unica ? 'otros_in' : 'salario');
 }
 
 /* de la cuota, lo que de verdad baja la deuda (el resto son intereses) */
@@ -2849,6 +2929,129 @@ function guardarDeuda(id){
 function borrarDeuda(id){
   S.deudas=S.deudas.filter(function(x){ return x.id!==id; });
   cerrarSheet(); pintarTodo(); toast('Deuda eliminada 🎉');
+}
+
+/* ---- lo que espera recibir ---- */
+function editarCobro(id){
+  var c = id ? cobroDatos(id) : null;
+  var h='<label class="f">¿Qué esperas recibir?</label>'+
+    '<input class="f" id="cNom" placeholder="Ej: mi sueldo, o lo que me debe Juan" value="'+esc(c?c.nombre:'')+'">'+
+    '<label class="f">¿Cuánto?</label>'+
+    '<input class="f tnum" id="cMon" inputmode="numeric" placeholder="$0" value="'+(c?fmtNum(c.monto):'')+'" oninput="fmtIn(this)">'+
+    '<label class="f">¿Cada cuánto llega?</label>'+
+    '<div class="seg" id="tipoSegC">'+
+      [['mensual','Todos los meses'],['unica','Una sola vez']].map(function(x){
+        return '<button data-t="'+x[0]+'" class="'+(((c&&c.tipo)||'mensual')===x[0]?'on':'')+'" '+
+               'onclick="tipoCobro(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+
+    '</div>'+
+    '<div id="campoCMens"'+(c&&c.tipo==='unica'?' hidden':'')+'>'+
+      '<label class="f">¿Qué día del mes entra?</label>'+
+      '<input class="f tnum" id="cDia" inputmode="numeric" placeholder="Ej: 30" value="'+(c&&c.dia?c.dia:'')+'">'+
+    '</div>'+
+    '<div id="campoCUnica"'+(c&&c.tipo==='unica'?'':' hidden')+'>'+
+      '<label class="f">¿Qué día te lo van a dar?</label>'+
+      '<input class="f" type="date" id="cFecha" value="'+(c&&c.tipo==='unica'&&c.fecha?c.fecha:'')+'">'+
+      '<div class="s12 faint mt8">Si llega el día y no ha entrado, no desaparece: se queda en tu lista '+
+      'diciéndote hace cuántos días te lo deben.</div>'+
+    '</div>'+
+    '<label class="f">¿De dónde viene?</label>'+
+    '<div class="catgrid" id="catsC">'+CATS['in'].map(function(x){
+      var sel=((c&&c.cat)||'salario')===x.id;
+      return '<button class="'+(sel?'on':'')+'" data-c="'+x.id+'" onclick="catCobro(\''+x.id+'\')">'+
+        '<span class="e">'+x.e+'</span>'+esc(x.n)+'</button>'; }).join('')+'</div>'+
+    '<div class="s12 faint mt8">Mi Plata cuenta esto como plata que va a entrar y lo usa para decirte '+
+    'si te alcanza para tus pagos del mes.</div>'+
+    '<button class="btn mt20" onclick="guardarCobro(\''+(id||'')+'\')">'+(c?'Guardar':'Agregar')+'</button>'+
+    (c?'<button class="btn ghost mt12" style="color:var(--danger)" onclick="borrarCobro(\''+id+'\')">Eliminar</button>':'');
+  sheet(c?'Editar lo que esperas':'Plata que va a entrar', h);
+}
+function tipoCobro(t){
+  var seg=document.getElementById('tipoSegC'); if(!seg) return;
+  [].forEach.call(seg.querySelectorAll('button'), function(b){
+    b.classList.toggle('on', b.getAttribute('data-t')===t); });
+  var m=document.getElementById('campoCMens'), u=document.getElementById('campoCUnica');
+  if(m) m.hidden=(t!=='mensual');
+  if(u) u.hidden=(t!=='unica');
+}
+function catCobro(id){
+  var box=document.getElementById('catsC'); if(!box) return;
+  [].forEach.call(box.querySelectorAll('button'), function(b){
+    b.classList.toggle('on', b.getAttribute('data-c')===id); });
+}
+function guardarCobro(id){
+  var nom=(document.getElementById('cNom').value||'').trim();
+  var mon=unfmt(document.getElementById('cMon').value);
+  if(!nom){ toast('Ponle un nombre'); return; }
+  if(mon<=0){ toast('¿Cuánto esperas recibir?'); return; }
+  var b=document.querySelector('#tipoSegC button.on');
+  var tp=b?b.getAttribute('data-t'):'mensual';
+  var cb=document.querySelector('#catsC button.on');
+  var cat=cb?cb.getAttribute('data-c'):'salario';
+  var dia=0, fch='';
+  if(tp==='unica'){
+    fch=(document.getElementById('cFecha')||{}).value||'';
+    if(!fch){ toast('¿Qué día te lo van a dar?'); return; }
+    dia=+fch.slice(8,10);
+  }else{
+    dia=Math.max(0, Math.min(31, parseInt(String((document.getElementById('cDia')||{}).value||'').replace(/[^\d]/g,''),10)||0));
+    if(!dia){ toast('¿Qué día del mes entra?'); return; }
+  }
+  var campos={nombre:nom, monto:mon, tipo:tp, dia:dia, fecha:fch, cat:cat};
+  if(id){ S.cobros.forEach(function(x){ if(x.id===id){ for(var k in campos) x[k]=campos[k]; } }); }
+  else { campos.id=uid(); S.cobros.push(campos); }
+  cerrarSheet(); pintarTodo(); toast('Listo ✓');
+}
+function borrarCobro(id){
+  S.cobros=S.cobros.filter(function(x){ return x.id!==id; });
+  cerrarSheet(); pintarTodo(); toast('Eliminado');
+}
+
+/* una línea de «va a entrar», con su botón de ya entró */
+function cobroHTML(c, ym){
+  var col = c.recibido ? 'var(--accent)'
+          : c.estado==='atrasado' ? 'var(--out)'
+          : c.estado==='proximo' ? 'var(--warn)' : 'var(--muted)';
+  var mesN=MESES[+c.fecha.split('-')[1]-1];
+  var cuando = c.unica ? ('el '+c.dia+' de '+mesN) : ('el '+c.dia);
+  var etq = c.recibido ? 'Ya entró'
+          : c.estado==='atrasado'
+              ? (c.dias<0 ? 'Te lo debían '+cuando+' · hace '+Math.abs(c.dias)+' día'+(Math.abs(c.dias)>1?'s':'')
+                          : 'No entró')
+          : c.dias===0 ? 'Entra hoy'
+          : c.estado==='proximo' ? 'Entra en '+c.dias+' día'+(c.dias>1?'s':'')
+          : 'Entra '+cuando;
+  return '<div class="pend'+(c.recibido?' ok':'')+'">'+
+    '<div class="pd" onclick="editarCobro(\''+c.id+'\')"><div class="nm">'+esc(c.nombre)+' <span class="ed">›</span></div>'+
+    '<div class="dt" style="color:'+col+'">'+etq+(c.unica?' · te lo deben':'')+'</div></div>'+
+    '<div class="pa tnum in">+'+money(c.monto)+'</div>'+
+    (c.recibido
+      ? '<button class="pb done" onclick="editarMov(\''+c.mov.id+'\')" aria-label="Ver">✓</button>'
+      : '<button class="pb" onclick="recibirCobro(\''+c.id+'\',\''+ym+'\',\''+c.mesRef+'\')">Ya entró</button>')+
+  '</div>';
+}
+
+function cobrosCardHTML(){
+  if(!S.cobros.length){
+    return '<div class="empty"><div class="pxstage">'+pxa('sleep',1)+'</div>'+
+      '<b>Nada por cobrar todavía</b>'+
+      '<p>Tu sueldo, un trabajo que te van a pagar, o la plata que le prestaste a alguien. '+
+      'Al ponerle fecha, Mi Plata la cuenta para decirte si te alcanza — y te avisa si no llega.</p>'+
+      '<button class="btn soft mt16" onclick="editarCobro()">Agregar</button></div>';
+  }
+  var l=cobrosDe(ymHoy());
+  var pend=l.filter(function(c){ return !c.recibido; });
+  var tot=pend.reduce(function(a,c){ return a+c.monto; },0);
+  var atras=pend.filter(function(c){ return c.estado==='atrasado'; });
+  return '<div class="card"><div class="row"><h3 style="margin:0">Te van a entrar este mes</h3>'+
+    '<b class="tnum in" style="font-size:17px">'+money(tot)+'</b></div>'+
+    (atras.length
+      ? '<div class="s12" style="margin:4px 0 2px;color:var(--out)">Ojo: '+atras.length+
+        (atras.length>1?' ya se pasaron de fecha y no han entrado.':' ya se pasó de fecha y no ha entrado.')+'</div>'
+      : '<div class="s12 faint" style="margin:4px 0 2px">Tócalas para editarlas. Marca <b>Ya entró</b> '+
+        'el día que llegue la plata.</div>')+
+    l.map(function(c){ return cobroHTML(c, ymHoy()); }).join('')+
+    '<button class="btn ghost sm mt16" style="width:100%" onclick="editarCobro()">+ Agregar otra</button>'+
+  '</div>';
 }
 
 /* ---- perfil ---- */
@@ -3718,6 +3921,7 @@ function toggleTema(){
   S.perfil=Object.assign(b.perfil, S.perfil||{});
   S.ajustes=Object.assign(b.ajustes, S.ajustes||{});
   S.mov=S.mov||[]; S.metas=S.metas||[]; S.deudas=S.deudas||[]; S.fijos=S.fijos||[];
+  S.cobros=S.cobros||[];
   S.perfil.nombre='Salomé';
   aplicarTema(); aplicarGato(); pintar(); petAgendar(); montarArrastre();
 
