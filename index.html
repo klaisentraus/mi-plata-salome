@@ -798,6 +798,8 @@ var MES_C = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','
 /* ---------- estado ---------- */
 var S = null;
 var VISTA = { mes: ymHoy(), filtro:'todo', pantalla:'inicio', planTab:'plan' };
+/* sube junto con el número de sw.js, para que las dos cosas digan lo mismo */
+var APP_VER='v32', APP_FECHA='14 de septiembre de 2026';
 
 function estadoNuevo(){
   return {
@@ -1122,6 +1124,25 @@ function pintarInicio(){
   var dias=diasEnMes(ym), hoyD=d.getDate(), restan=Math.max(1,dias-hoyD+1);
   var libre = muestra - pv.porPagar;          /* lo comprometido no es gastable */
   var porDia = libre>0 ? libre/restan : 0;
+  /* el mismo cálculo, pero contando lo que todavía espera recibir */
+  var libreC = muestra + pv.porEntrar - pv.porPagar;
+  var porDiaC = libreC>0 ? libreC/restan : 0;
+  /* cuándo llega lo que falta: no puede gastar hoy el sueldo del 30 */
+  var ultC = pv.pendC && pv.pendC.length
+    ? pv.pendC.slice().sort(function(a,b){ return b.fecha.localeCompare(a.fecha); })[0] : null;
+  var cuandoC = ultC ? (ultC.dias<=0 ? 'ya' : 'el '+ultC.dia) : '';
+
+  var extra='';
+  if(pv.porEntrar>0 && porDiaC>porDia){
+    extra = libre<=0
+      ? '<div class="s13 mt8" style="color:var(--in)">Con lo que tienes hoy no alcanza. '+
+        'Cuando entren los <b>'+money(pv.porEntrar)+'</b> que esperas'+(cuandoC?' ('+cuandoC+')':'')+
+        ', serían <b>'+money(porDiaC)+' por día</b>.</div>'
+      : '<div class="s13 mt8" style="color:var(--in)">Contando los <b>'+money(pv.porEntrar)+
+        '</b> que todavía esperas'+(cuandoC?' ('+cuandoC+')':'')+', serían <b>'+money(porDiaC)+
+        ' por día</b>. Mientras no lleguen, tu número es el de arriba.</div>';
+  }
+
   document.getElementById('paceBox').innerHTML =
     '<div class="card">'+
       '<h3>Tu ritmo</h3>'+
@@ -1133,7 +1154,8 @@ function pintarInicio(){
                 : 'Con lo que te queda no alcanzas a cubrir tus pagos con fecha, así que no hay nada libre para gastar.')+'</div>'
             : (pv.porPagar>0
                 ? '<div class="s13 muted mt8">Es lo que puedes gastar libre: ya le restamos los <b>'+money(pv.porPagar)+'</b> de pagos que te faltan.</div>'
-                : ''))
+                : ''))+
+          extra
         : '<div class="s13 muted">Dime cuánta plata tienes hoy, o registra tu primer movimiento con el botón <b>+</b>, para ver tu ritmo.</div>')+
     '</div>';
 
@@ -1425,6 +1447,8 @@ function pintarMov(){
   var sa=saldoActual();
   var porPagar=compromisos(ym).filter(function(c){ return !c.pagado; })
                               .reduce(function(a,c){ return a+c.monto; },0);
+  var porEntrar=cobrosDe(ym).filter(function(c){ return !c.recibido; })
+                            .reduce(function(a,c){ return a+c.monto; },0);
   var cats=[];
   Object.keys(r.porCat).forEach(function(k){ cats.push({c:CAT_MAP[k]||{n:k,e:'📦'}, v:r.porCat[k]}); });
   cats.sort(function(a,b){ return b.v-a.v; });
@@ -1440,12 +1464,20 @@ function pintarMov(){
         '<div><b style="color:var(--in)">'+corto(r.ing)+'</b> entró</div>'+
         '<div><b style="color:var(--out)">'+corto(r.gas)+'</b> gastado</div>'+
         '<div><b style="color:var(--save)">'+corto(r.aho)+'</b> guardado</div>'+
+        (porEntrar>0 ? '<div><b style="color:var(--in)">'+corto(porEntrar)+'</b> por entrar</div>' : '')+
         (porPagar>0 ? '<div><b style="color:var(--warn)">'+corto(porPagar)+'</b> por pagar</div>' : '')+
       '</div></div>'+
-      (porPagar>0
+      (porPagar>0 || porEntrar>0
         ? '<div class="s12 muted" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">'+
-          'Este mes se te van <b>'+money(r.gas+porPagar)+'</b> en total: '+money(r.gas)+' que ya pagaste y '+
-          '<b style="color:var(--warn)">'+money(porPagar)+'</b> que todavía no.</div>'
+          (porPagar>0
+            ? 'Este mes se te van <b>'+money(r.gas+porPagar)+'</b> en total: '+money(r.gas)+' que ya pagaste y '+
+              '<b style="color:var(--warn)">'+money(porPagar)+'</b> que todavía no.'
+            : '')+
+          (porEntrar>0
+            ? (porPagar>0?'<br>':'')+'Y todavía esperas <b style="color:var(--in)">'+money(porEntrar)+
+              '</b> este mes: entrarían <b>'+money(r.ing+porEntrar)+'</b> en total.'
+            : '')+
+          '</div>'
         : '')+
       ((r.gas>0||porPagar>0) ? (function(){
         var base=r.ing||(r.gas+porPagar)||1;
@@ -1483,6 +1515,7 @@ function pintarMov(){
   var extra='';
   /* lo previsto va arriba de la lista: es lo que todavía tiene que pasar */
   if(f==='todo'||f==='out') extra += pendMesHTML(ym);
+  if(f==='todo'||f==='in')  extra += porCobrarMesHTML(ym);
   /* en Ahorro, primero a dónde va esa plata */
   if(f==='save'){ var pl=plan(); extra += colchonCardHTML(pl,false,false) + metasCardHTML(pl); }
 
@@ -1995,7 +2028,13 @@ function pintarMas(){
     '<div class="s13 muted">Borra todo lo registrado en este dispositivo. No se puede deshacer.</div>'+
     '<button class="btn ghost mt12" style="color:var(--danger)" onclick="borrarTodo()">Borrar todos mis datos</button></div>';
 
-  out += '<div class="disc">Mi Plata v1 · Funciona sin internet · Tus datos nunca salen de tu dispositivo, '+
+  out += '<div class="card flat center"><div class="s12 faint">Versión de la app</div>'+
+    '<div style="font-weight:700;font-size:19px;letter-spacing:-.01em;margin-top:2px">Mi Plata '+APP_VER+'</div>'+
+    '<div class="s12 faint" style="margin-top:2px">'+APP_FECHA+'</div>'+
+    '<button class="btn ghost sm mt12" onclick="buscarActualizacion()">¿Hay una versión nueva?</button>'+
+    '<div class="s12 faint mt8">Si Rafael te dice que cambió algo y no lo ves, toca ahí.</div></div>';
+
+  out += '<div class="disc">Funciona sin internet · Tus datos nunca salen de tu dispositivo, '+
     'excepto en las copias que tú misma decidas enviar.<br><br>'+
     'Herramienta educativa y de organización personal. No es asesoría financiera ni de inversión.</div>';
 
@@ -2638,6 +2677,21 @@ function pagarDeuda(id){
        cat:'deudas', destino:'colchon', fecha:hoyISO(), nota:d.nombre, id:null, retiro:false,
        ref:d.id, refMes:null, refNombre:d.nombre};
   renderAdd();
+}
+
+/* lo que todavía tiene que entrar en el mes: el espejo de «Previsto · sin pagar» */
+function porCobrarMesHTML(ym){
+  var c=cobrosDe(ym).filter(function(x){ return !x.recibido; });
+  if(!c.length) return '';
+  var t=c.reduce(function(a,x){ return a+x.monto; },0);
+  var atras=c.filter(function(x){ return x.estado==='atrasado'; }).length;
+  return '<div class="card" style="border-color:var(--in)">'+
+    '<div class="row"><h3 style="margin:0;color:var(--in)">Por entrar · sin recibir</h3>'+
+    '<b class="tnum" style="color:var(--in);font-size:16px">'+money(t)+'</b></div>'+
+    '<div class="s12 faint" style="margin:4px 0 2px">Todavía no está en tu bolsillo. '+
+    'Toca <b>Ya entró</b> el día que llegue'+
+    (atras?', y ojo: hay '+atras+' que ya se pasó de fecha y no ha entrado':'')+'.</div>'+
+    c.map(function(x){ return cobroHTML(x, ym); }).join('')+'</div>';
 }
 
 function pendMesHTML(ym){
@@ -3893,6 +3947,28 @@ function frasesGato(){
   f.push('Estoy aquí para que no adivines. Los números los pongo yo.');
   f.push('Ronroneo gratis incluido. 🐾');
   return f;
+}
+
+/* Busca versión nueva. Solo borra lo guardado DESPUÉS de bajar la página de la
+   red: si está sin internet y le borramos el caché, la app no vuelve a abrir. */
+function buscarActualizacion(){
+  toast('Buscando…');
+  fetch('./index.html', {cache:'reload'}).then(function(res){
+    if(!res || !res.ok) throw new Error('sin red');
+    var tareas=[];
+    if(window.caches) tareas.push(caches.keys().then(function(ks){
+      return Promise.all(ks.map(function(k){ return caches.delete(k); }));
+    }));
+    if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
+      tareas.push(navigator.serviceWorker.getRegistrations().then(function(rs){
+        return Promise.all(rs.map(function(r){ return r.update(); }));
+      }));
+    return Promise.all(tareas).catch(function(){});
+  }).then(function(){
+    location.reload();
+  }).catch(function(){
+    toast('Sin internet. Sigues con la que tienes.');
+  });
 }
 
 /* ---- tema ---- */
