@@ -128,10 +128,15 @@ h1,h2,h3,p{margin:0}
 
 .bar{height:9px; border-radius:99px; background:var(--sunken); overflow:hidden; display:flex}
 .bar i{display:block; height:100%}
-.bar i.a{background:var(--out)} .bar i.b{background:var(--save)} .bar i.c{background:var(--accent)}
+/* un significado, un color en toda la app: verde indispensable, naranja recortable,
+   morado ahorro. (.c es para barras de avance, no para gastos.) */
+.bar i.a{background:var(--accent)} .bar i.b{background:var(--save)} .bar i.c{background:var(--accent)}
 /* lo comprometido que aun no sale: rayado, para que no se lea como gastado */
 .bar i.pend-seg{background:repeating-linear-gradient(135deg,var(--warn) 0 4px,transparent 4px 8px);
   box-shadow:inset 0 0 0 1px var(--warn)}
+
+button.lnk{color:var(--accent); font-weight:650; text-decoration:underline;
+  text-underline-offset:2px; font-size:inherit}
 
 /* ---------- daily pace ---------- */
 .pace{display:flex; align-items:baseline; gap:8px; margin-top:4px}
@@ -154,7 +159,7 @@ h1,h2,h3,p{margin:0}
 .catrow .t span:first-child{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .catrow .t b{font-weight:640; white-space:nowrap}
 .mini{height:6px; border-radius:99px; background:var(--sunken); overflow:hidden}
-.mini i{display:block;height:100%; background:var(--out); border-radius:99px}
+.mini i{display:block;height:100%; background:var(--warn); border-radius:99px}
 .mini i.ess{background:var(--accent)}
 
 /* ---------- buttons ---------- */
@@ -929,16 +934,19 @@ function base(){
 
 /* cuanta plata tiene disponible AHORA: el corte mas todo lo registrado despues.
    null = todavia no lo ha configurado */
+/* Lo que ella pone es una BASE, no una foto que congela: a partir de ahí cada
+   cosa que anote mueve el número. Un app donde registrar el sueldo no cambia el
+   saldo no sirve para nada. */
+function netoMov(){
+  var t=0;
+  S.mov.forEach(function(m){ t += (m.tipo==='in' ? m.monto : -m.monto); });
+  return t;                                     /* gasto o plata apartada restan */
+}
 function saldoActual(){
   if(!S.perfil.saldoDesde) return null;
-  var desde=S.perfil.saldoDesde, t=S.perfil.saldoInicial||0;
-  S.mov.forEach(function(m){
-    if(!m.creado || m.creado<=desde) return;   /* ya estaba reflejado en el corte */
-    if(m.tipo==='in') t+=m.monto;
-    else t-=m.monto;                            /* gasto o plata apartada */
-  });
-  return t;
+  return (S.perfil.saldoInicial||0) + netoMov();
 }
+
 
 function ahorroTotal(){
   var t=S.perfil.ahorroInicial||0;
@@ -1087,10 +1095,14 @@ function pintarInicio(){
       '<div class="note">'+(neg
         ? (tieneSaldo ? 'Estás en rojo. Revisa tu plan.'
                       : 'Vas gastando más de lo que entró en '+MESES[d.getMonth()]+'.')
-        : (pv.porPagar>0
-            ? 'De eso, <b>'+money(pv.porPagar)+'</b> ya tienen dueño: son tus pagos con fecha.'
-            : (tieneSaldo ? 'Disponible para gastar, sin contar lo que tienes ahorrado.'
-                          : 'Después de tus gastos y de lo que ya guardaste.')))+'</div>'+
+        /* «de eso» solo se puede decir si lo comprometido cabe dentro de lo que tiene */
+        : (pv.porPagar>muestra
+            ? 'No alcanza: tus pagos con fecha suman <b>'+money(pv.porPagar)+'</b> y te faltan <b>'+
+              money(pv.porPagar-muestra)+'</b>.'
+            : (pv.porPagar>0
+              ? 'De eso, <b>'+money(pv.porPagar)+'</b> ya tienen dueño: son tus pagos con fecha.'
+              : (tieneSaldo ? 'Disponible para gastar, sin contar lo que tienes ahorrado.'
+                            : 'Después de tus gastos y de lo que ya guardaste.'))))+'</div>'+
       '</div>'+
       '</div>'+
       '<div class="split">'+
@@ -1098,6 +1110,12 @@ function pintarInicio(){
         '<div><div class="k">Gastaste</div><div class="v out tnum">'+corto(r.gas)+'</div></div>'+
         '<div><div class="k">Guardaste</div><div class="v save tnum">'+corto(r.aho)+'</div></div>'+
       '</div>'+
+      /* si no, «entró 1,8M, gastaste 1,0M» parece decir que arriba debería haber 800k */
+      (tieneSaldo
+        ? '<div class="s12 faint mt12">Es el saldo con el que empezaste, más todo lo que has '+
+          'anotado desde entonces. Estas tres cifras son solo lo que se movió en '+
+          MESES[d.getMonth()]+'.</div>'
+        : '')+
     '</div>';
 
   /* ritmo diario */
@@ -1223,9 +1241,13 @@ function pintarSaldo(){
 
 function editarSaldo(){
   var p=S.perfil;
-  sheet('Mi saldo de hoy',
-    '<div class="s13 muted" style="margin-bottom:4px">Mira tu app del banco y copia los números. '+
-    'De aquí en adelante Mi Plata los va actualizando sola con lo que registres.</div>'+
+  sheet(p.saldoDesde ? 'Corregir mi punto de partida' : 'Con cuánto empiezo',
+    '<div class="s13 muted" style="margin-bottom:4px">'+
+    (p.saldoDesde
+      ? 'Es el número con el que arrancaste, no tu saldo de hoy. Solo se toca si te equivocaste '+
+        'al escribirlo el primer día.'
+      : 'Mira tu app del banco y copia los números. Es lo único que se pone a mano: de aquí en '+
+        'adelante Mi Plata lleva la cuenta sola con lo que vayas registrando.')+'</div>'+
     '<label class="f">¿Cuánto tienes disponible para gastar?</label>'+
     '<input class="f tnum" id="sDisp" inputmode="numeric" placeholder="$0" value="'+
       (p.saldoInicial?fmtNum(p.saldoInicial):'')+'" oninput="fmtIn(this)">'+
@@ -1235,8 +1257,9 @@ function editarSaldo(){
       (p.ahorroInicial?fmtNum(p.ahorroInicial):'')+'" oninput="fmtIn(this)">'+
     '<div class="s12 faint mt8">Un CDT, un Bolsillo, plata guardada aparte. Si no tienes, déjalo vacío.</div>'+
     (p.saldoDesde
-      ? '<div class="banner warn mt16"><span class="e">\u267b\ufe0f</span><div>Al guardar se vuelve a '+
-        'contar desde este número. Úsalo cuando el saldo de la app se haya despegado del de tu banco.</div></div>'
+      ? '<div class="banner warn mt16"><span class="e">\u270f\ufe0f</span><div>Cambia el punto '+
+        'de partida: todo lo que has registrado se vuelve a sumar encima. Si la app y tu banco '+
+        'no coinciden, casi siempre es que falta anotar algo.</div></div>'
       : '')+
     '<button class="btn mt20" onclick="guardarSaldo()">Guardar</button>'+
     (p.saldoDesde
@@ -1247,7 +1270,7 @@ function guardarSaldo(){
   S.perfil.saldoInicial=unfmt(document.getElementById('sDisp').value);
   S.perfil.ahorroInicial=unfmt(document.getElementById('sAho').value);
   S.perfil.saldoDesde=new Date().toISOString();
-  cerrarSheet(); pintarTodo(); toast('Saldo puesto al día ✓');
+  cerrarSheet(); pintarTodo(); toast('Listo ✓');
 }
 function olvidarSaldo(){
   if(!confirm('¿Dejar de llevar tu saldo? Vuelves a ver solo el neto del mes. Tus movimientos no se tocan.')) return;
@@ -1399,6 +1422,7 @@ function pintarMov(){
     }).join('');
 
   /* lo comprometido del mes que todavía no ha salido: al pagarlo pasa solo a «gastado» */
+  var sa=saldoActual();
   var porPagar=compromisos(ym).filter(function(c){ return !c.pagado; })
                               .reduce(function(a,c){ return a+c.monto; },0);
   var cats=[];
@@ -1408,8 +1432,10 @@ function pintarMov(){
 
   document.getElementById('movResumen').innerHTML =
     '<div class="card"><div class="row"><div>'+
-      '<div class="s12 muted">Saldo de '+nomMes(ym)+'</div>'+
-      '<div class="tnum" style="font-size:26px;font-weight:700;letter-spacing:-.02em'+(r.saldo<0?';color:var(--out)':'')+'">'+moneyS(r.saldo)+'</div></div>'+
+      '<div class="s12 muted">Entró menos salió</div>'+
+      '<div class="tnum" style="font-size:26px;font-weight:700;letter-spacing:-.02em'+(r.saldo<0?';color:var(--out)':'')+'">'+moneyS(r.saldo)+'</div>'+
+      (sa!==null ? '<div class="s12 faint" style="margin-top:3px">Tienes <b>'+money(sa)+'</b> en total hoy</div>' : '')+
+      '</div>'+
       '<div class="s12 muted" style="text-align:right;line-height:1.7">'+
         '<div><b style="color:var(--in)">'+corto(r.ing)+'</b> entró</div>'+
         '<div><b style="color:var(--out)">'+corto(r.gas)+'</b> gastado</div>'+
@@ -1429,7 +1455,7 @@ function pintarMov(){
           '<i class="b" style="width:'+(r.aho/base*100)+'%"></i>'+
           '<i class="pend-seg" style="width:'+(porPagar/base*100)+'%"></i></div>'+
           '<div class="row mt8 s12 muted" style="flex-wrap:wrap;gap:4px 10px">'+
-          '<span>🟥 Indispensable '+corto(r.ess)+'</span>'+
+          '<span>🟩 Indispensable '+corto(r.ess)+'</span>'+
           '<span>🟧 Gustos '+corto(r.noEss)+'</span>'+
           '<span>🟪 Ahorro '+corto(r.aho)+'</span>'+
           (porPagar>0?'<span>⬜ Por pagar '+corto(porPagar)+'</span>':'')+'</div>';
@@ -1632,7 +1658,7 @@ function pintarPlan(){
       '<i style="background:var(--warn);width:'+Math.min(100,a2)+'%"></i>'+
       '<i class="b" style="width:'+Math.min(100,a3)+'%"></i></div>'+
       '<div class="mt12">'+
-        cmpRow('Indispensable', a1, idNec, 'var(--out)', false)+
+        cmpRow('Indispensable', a1, idNec, 'var(--accent)', false)+
         cmpRow('Gustos', a2, idGus, 'var(--warn)', false)+
         cmpRow('Ahorro', a3, aPct, 'var(--save)', true)+
       '</div>'+
@@ -1920,7 +1946,7 @@ function pintarMas(){
     '<div class="kv"><span>Saldo disponible</span><b class="tnum">'+
       (saldoActual()===null?'sin configurar':money(saldoActual()))+'</b></div>'+
     '<button class="btn ghost mt16" onclick="editarSaldo()">'+
-      (S.perfil.saldoDesde?'Ajustar mi saldo':'Poner mi saldo de hoy')+'</button>'+
+      (S.perfil.saldoDesde?'Corregir mi punto de partida':'Poner mi saldo de hoy')+'</button>'+
     '<div class="kv"><span>Pagos fijos</span><b class="tnum">'+S.fijos.length+'</b></div>'+
     '<button class="btn ghost mt16" onclick="editarPerfil()">Cambiar mi ingreso esperado</button>'+
   '</div>';
